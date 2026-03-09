@@ -1,0 +1,10 @@
+google-api-python-client
+google-auth-oauthlib
+google-auth-httplib2
+youtube-transcript-api
+openai
+pyyaml
+apscheduler
+requests
+python-dotenv
+mysql-connector-python

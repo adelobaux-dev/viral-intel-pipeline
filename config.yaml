@@ -1,0 +1,19 @@
+youtube:
+  channels:
+    - name: "Alex Hormozi"
+      id: "UCUyDOdBWhC1MCxEjC46d-zw"
+    - name: "Dan Martell"
+      id: "UCA-mWX9CvCTVFWRMb9bKc9w"
+  videos_per_channel: 3
+
+scheduler:
+  day_of_week: "fri"
+  hour: 18
+  minute: 0
+  timezone: "Europe/Paris"
+
+drive:
+  folder_id: "17BObcAJJm5sDJZqW1y8zJymTL8n2VJRX"
+
+email:
+  subject: "Weekly Strategic Intelligence - Viral Intel"
