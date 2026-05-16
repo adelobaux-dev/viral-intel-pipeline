@@ -134,7 +134,7 @@ export default function LiveCallPage() {
                 ) : (
                   <PhoneCall className="h-4 w-4" />
                 )}
-                Démarrer l&apos;appel
+                Démarrer la conversation
               </button>
             </>
           ) : (
