@@ -6,6 +6,7 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { StatCard } from "@/components/StatCard";
 import { CallsTable } from "@/components/CallsTable";
 import { TeamLeaderboard } from "@/components/TeamLeaderboard";
+import { ClosingResourcesManager } from "@/components/ClosingResourcesManager";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +89,7 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
         <section className="grid gap-4 sm:grid-cols-3">
           <StatCard
-            label="Appels réalisés"
+            label="Conversations réalisées"
             value={String(perf?.total_calls ?? 0)}
           />
           <StatCard
@@ -110,9 +111,17 @@ export default async function DashboardPage() {
           </section>
         )}
 
+        {isAdmin && (
+          <section>
+            <ClosingResourcesManager />
+          </section>
+        )}
+
         <section>
           <h2 className="mb-3 text-lg font-semibold text-slate-800">
-            {isAdmin ? "Tous les appels" : "Mon historique d'appels"}
+            {isAdmin
+              ? "Toutes les conversations"
+              : "Mon historique de conversations"}
           </h2>
           <CallsTable
             calls={calls ?? []}

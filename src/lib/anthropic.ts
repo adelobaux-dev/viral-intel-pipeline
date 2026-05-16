@@ -28,13 +28,18 @@ function extractJson(text: string): unknown {
  */
 export async function getLiveRecommendation(
   recentLines: string[],
+  knowledge?: string,
 ): Promise<Recommendation> {
   const conversation = recentLines.join("\n");
+
+  const knowledgeBlock = knowledge?.trim()
+    ? `\n\nRESSOURCES DE CLOSING DU CABINET (à privilégier dans tes conseils) :\n${knowledge.trim()}`
+    : "";
 
   const response = await client().messages.create({
     model: MODEL,
     max_tokens: 300,
-    system: `${CABINET_CONTEXT}
+    system: `${CABINET_CONTEXT}${knowledgeBlock}
 
 Analyse la conversation EN COURS. Donne UN seul conseil de closing, très court (1 phrase max), à lire en un coup d'œil.
 Réponds STRICTEMENT en JSON :

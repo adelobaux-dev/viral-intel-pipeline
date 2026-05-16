@@ -102,7 +102,7 @@ export default function LiveCallPage() {
               Cabinet Dr Alexis Delobaux
             </p>
             <h1 className="text-lg font-semibold text-slate-800">
-              Appel en direct
+              Conversation en direct
             </h1>
           </div>
         </div>

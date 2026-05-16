@@ -45,7 +45,17 @@ export async function GET(request: Request) {
       }
 
       try {
-        const rec = await getLiveRecommendation(recentLines);
+        const { data: resources } = await supabase
+          .from("closing_resources")
+          .select("title, content")
+          .order("created_at", { ascending: false })
+          .limit(20);
+        const knowledge = (resources ?? [])
+          .map((r) => `### ${r.title}\n${r.content}`)
+          .join("\n\n")
+          .slice(0, 6000);
+
+        const rec = await getLiveRecommendation(recentLines, knowledge);
         send("recommendation", rec);
       } catch (err) {
         send("error", {

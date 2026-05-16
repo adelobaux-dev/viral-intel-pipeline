@@ -18,7 +18,7 @@ export function TeamLeaderboard({
             <th className="px-4 py-3">#</th>
             <th className="px-4 py-3">Membre</th>
             <th className="px-4 py-3">Rôle</th>
-            <th className="px-4 py-3">Appels</th>
+            <th className="px-4 py-3">Conversations</th>
             <th className="px-4 py-3">Score moyen</th>
             <th className="px-4 py-3">Conversion</th>
           </tr>
