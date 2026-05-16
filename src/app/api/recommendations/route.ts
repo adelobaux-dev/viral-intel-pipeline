@@ -1,0 +1,68 @@
+import { createClient } from "@/lib/supabase/server";
+import { getLiveRecommendation } from "@/lib/anthropic";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+/**
+ * Server-Sent Events : émet une recommandation C.A.R.E.S. toutes les ~10s
+ * à partir des 10 dernières phrases transcrites passées en query (?lines=).
+ *
+ * Le client reconnecte avec une transcription rafraîchie ; chaque connexion
+ * vit le temps d'un cycle de polling SSE.
+ */
+export async function GET(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return new Response("Non authentifié", { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const linesParam = searchParams.get("lines") ?? "";
+  const recentLines = linesParam
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .slice(-10);
+
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: string, data: unknown) => {
+        controller.enqueue(
+          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
+        );
+      };
+
+      if (recentLines.length === 0) {
+        send("idle", { message: "En attente de transcription…" });
+        controller.close();
+        return;
+      }
+
+      try {
+        const rec = await getLiveRecommendation(recentLines);
+        send("recommendation", rec);
+      } catch (err) {
+        send("error", {
+          message:
+            err instanceof Error ? err.message : "Erreur recommandation IA",
+        });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+    },
+  });
+}

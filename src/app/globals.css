@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+.card {
+  @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-medical-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-medical-700 focus:outline-none focus:ring-2 focus:ring-medical-400 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+}
+
+.input {
+  @apply w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-medical-500 focus:ring-2 focus:ring-medical-200;
+}

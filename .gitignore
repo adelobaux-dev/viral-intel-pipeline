@@ -73,3 +73,9 @@ exports/
 node_modules/
 package-lock.json
 yarn.lock
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+.vercel
