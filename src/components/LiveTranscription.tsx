@@ -168,6 +168,27 @@ export function LiveTranscription() {
         </div>
       )}
 
+      {isRecording && (
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-2">
+          <Mic
+            className={`h-4 w-4 shrink-0 ${
+              recorder.audioLevel > 4 ? "text-emerald-600" : "text-slate-400"
+            }`}
+          />
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+            <div
+              className={`h-full rounded-full transition-[width] duration-100 ${
+                recorder.audioLevel > 4 ? "bg-emerald-500" : "bg-slate-300"
+              }`}
+              style={{ width: `${recorder.audioLevel}%` }}
+            />
+          </div>
+          <span className="w-28 shrink-0 text-right text-xs font-medium text-slate-500">
+            {recorder.audioLevel > 4 ? "Voix captée ✓" : "Parlez…"}
+          </span>
+        </div>
+      )}
+
       <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {lines.length === 0 && (
           <p className="text-sm text-slate-400">

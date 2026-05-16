@@ -31,16 +31,55 @@ export function useAudioRecorder({
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string>("");
+  /** Niveau sonore du micro, 0 → 100, pour la barre de visualisation. */
+  const [audioLevel, setAudioLevel] = useState(0);
 
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   const stop = useCallback(() => {
-    recorderRef.current?.state !== "inactive" && recorderRef.current?.stop();
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = null;
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      recorderRef.current.stop();
+    }
     streamRef.current?.getTracks().forEach((t) => t.stop());
     recorderRef.current = null;
     streamRef.current = null;
+    setAudioLevel(0);
     setIsRecording(false);
+  }, []);
+
+  const startMeter = useCallback((stream: MediaStream) => {
+    const Ctx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    const ctx = new Ctx();
+    audioCtxRef.current = ctx;
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+    const buffer = new Uint8Array(analyser.frequencyBinCount);
+
+    const tick = () => {
+      analyser.getByteTimeDomainData(buffer);
+      let sum = 0;
+      for (let i = 0; i < buffer.length; i++) {
+        const v = (buffer[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / buffer.length);
+      // Amplifié et plafonné pour une barre lisible.
+      setAudioLevel(Math.min(100, Math.round(rms * 280)));
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    tick();
   }, []);
 
   const start = useCallback(async () => {
@@ -54,6 +93,12 @@ export function useAudioRecorder({
         },
       });
       streamRef.current = stream;
+
+      try {
+        startMeter(stream);
+      } catch {
+        // La visualisation n'est pas critique : on continue sans.
+      }
 
       const type = pickMimeType();
       setMimeType(type);
@@ -90,7 +135,7 @@ export function useAudioRecorder({
       }
       stop();
     }
-  }, [onChunk, timeslice, stop]);
+  }, [onChunk, timeslice, stop, startMeter]);
 
-  return { isRecording, error, mimeType, start, stop };
+  return { isRecording, error, mimeType, audioLevel, start, stop };
 }
