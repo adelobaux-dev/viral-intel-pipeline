@@ -9,3 +9,4 @@ requests
 python-dotenv
 mysql-connector-python
 schedule==1.2.0
+flask

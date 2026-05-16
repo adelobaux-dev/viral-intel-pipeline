@@ -254,6 +254,49 @@ CREATE TABLE scripts (
 - [Analysis Customization](./references/analysis_customization.md)
 - [Deployment Guide](./DEPLOYMENT_GUIDE.md)
 
+## 📩 Instagram Sell-by-Chat Bot (BCA)
+
+A **compliant, inbound** conversational bot for the Body Contouring Academy
+Instagram account. When a surgeon messages the account (DM, story reply, or
+an ad/CTA-initiated conversation), the bot runs the BCA sell-by-chat
+discovery script, qualifies them, captures their contact details, and hands
+hot leads to a human closer for the events.
+
+> ⚠️ By design it **only replies to people who message the account first**,
+> always inside Meta's 24h messaging window. It never enumerates or
+> cold-DMs the follower list — that violates Instagram's Terms and gets
+> business accounts banned.
+
+### Setup
+
+1. Instagram **Professional** account linked to a Facebook Page.
+2. A Meta app with **Instagram messaging** + webhooks, subscribed to the
+   `messages` field. Generate a Page/IG access token.
+3. Set these in `.env`:
+
+   ```
+   IG_VERIFY_TOKEN=your-random-verify-string
+   IG_APP_SECRET=meta-app-secret
+   IG_PAGE_ACCESS_TOKEN=long-lived-token
+   IG_BUSINESS_ID=ig-scoped-business-account-id
+   ```
+
+4. Tune `config.yaml -> instagram` (BCA expert allowlist, event name,
+   surgeon keywords).
+
+### Run
+
+```bash
+pip install -r requirements.txt
+python instagram_bot.py check     # validate env config
+python instagram_bot.py serve     # start webhook server on :8000/webhook
+python instagram_bot.py export    # dump captured leads to ig_leads.csv
+```
+
+Point your Meta app's webhook callback URL at `https://<host>/webhook`
+(use the verify token above). Captured leads are stored in the existing
+`viral_intel.db` (`ig_leads` / `ig_messages` tables).
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please:

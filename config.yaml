@@ -17,3 +17,29 @@ drive:
 
 email:
   subject: "Weekly Strategic Intelligence - Viral Intel"
+
+# Instagram inbound sell-by-chat bot (Body Contouring Academy account).
+# Secrets (tokens / app secret) live in .env, NEVER here.
+instagram:
+  graph_api_version: "v21.0"
+  brand_name: "the Body Contouring Academy"
+  event_name: "our next BCA live event"
+  human_handoff_after_offer: true
+  # Our own BCA experts — excluded from the sell-by-chat flow.
+  # Add their Instagram @handles (or ig-scoped ids), lowercase.
+  bca_experts:
+    - "bodycontouringacademy"
+    # - "expert_handle_here"
+  # Profile keywords used to tag a contact as a likely surgeon (CRM only).
+  surgeon_keywords:
+    - "md"
+    - "m.d"
+    - "plastic surgeon"
+    - "cosmetic surgeon"
+    - "aesthetic surgeon"
+    - "board certified"
+    - "facs"
+    - "frcs"
+    - "dr."
+    - "surgeon"
+    - "body contouring"
