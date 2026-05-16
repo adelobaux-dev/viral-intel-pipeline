@@ -168,7 +168,41 @@ export function LiveTranscription() {
         </div>
       )}
 
-      {isRecording && (
+      {!isRecording && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2">
+          <select
+            className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-700"
+            value={recorder.selectedDeviceId}
+            onChange={(e) => recorder.setSelectedDeviceId(e.target.value)}
+          >
+            <option value="">Microphone par défaut</option>
+            {recorder.devices.map((d, i) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || `Microphone ${i + 1}`}
+              </option>
+            ))}
+          </select>
+          {!recorder.isTesting ? (
+            <button
+              type="button"
+              onClick={recorder.testMic}
+              className="inline-flex items-center gap-1.5 rounded-md bg-medical-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-medical-700"
+            >
+              <Mic className="h-3.5 w-3.5" /> Activer / tester le micro
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={recorder.stopTest}
+              className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <MicOff className="h-3.5 w-3.5" /> Arrêter le test
+            </button>
+          )}
+        </div>
+      )}
+
+      {(isRecording || recorder.isTesting) && (
         <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-2">
           <Mic
             className={`h-4 w-4 shrink-0 ${

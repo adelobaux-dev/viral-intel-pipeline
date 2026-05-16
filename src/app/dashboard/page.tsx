@@ -78,7 +78,7 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-3">
             <Link href="/live-call" className="btn-primary">
               <PhoneCall className="h-4 w-4" />
-              Démarrer un nouvel appel
+              Démarrer la conversation
             </Link>
             <SignOutButton />
           </div>

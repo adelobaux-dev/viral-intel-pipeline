@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronRight, Loader2, Trash2 } from "lucide-react";
 import { CARES_LABELS } from "@/lib/cares";
 import type { CallRecord, CaresStep } from "@/lib/types";
 
@@ -14,7 +15,32 @@ export function CallsTable({
   showOwner: boolean;
   userById: Map<string, string>;
 }) {
+  const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDelete(id: string, label: string) {
+    if (
+      !window.confirm(
+        `Supprimer définitivement l'appel "${label}" ? Cette action est irréversible.`,
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/calls/${id}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Échec de la suppression");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Échec de la suppression");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   if (calls.length === 0) {
     return (
@@ -26,44 +52,59 @@ export function CallsTable({
 
   return (
     <div className="card divide-y divide-slate-100">
+      {error && (
+        <div className="bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
+      )}
       {calls.map((c) => {
         const open = openId === c.id;
+        const label = c.patient_name || "Patient sans nom";
         return (
           <div key={c.id}>
-            <button
-              onClick={() => setOpenId(open ? null : c.id)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50"
-            >
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-4 py-3 hover:bg-slate-50">
+              <button
+                onClick={() => setOpenId(open ? null : c.id)}
+                className="flex flex-1 items-center gap-3 text-left"
+              >
                 {open ? (
                   <ChevronDown className="h-4 w-4 text-slate-400" />
                 ) : (
                   <ChevronRight className="h-4 w-4 text-slate-400" />
                 )}
                 <div>
-                  <p className="text-sm font-medium text-slate-800">
-                    {c.patient_name || "Patient sans nom"}
-                  </p>
+                  <p className="text-sm font-medium text-slate-800">{label}</p>
                   <p className="text-xs text-slate-500">
                     {new Date(c.created_at).toLocaleString("fr-FR")}
-                    {showOwner && (
-                      <> · {userById.get(c.user_id) ?? "—"}</>
-                    )}
+                    {showOwner && <> · {userById.get(c.user_id) ?? "—"}</>}
                   </p>
                 </div>
+              </button>
+
+              <div className="flex items-center gap-3">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    (c.score ?? 0) >= 6
+                      ? "bg-emerald-100 text-emerald-700"
+                      : c.score == null
+                        ? "bg-slate-100 text-slate-500"
+                        : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {c.score != null ? `${Number(c.score).toFixed(1)}/10` : "—"}
+                </span>
+                <button
+                  onClick={() => handleDelete(c.id, label)}
+                  disabled={deletingId === c.id}
+                  title="Supprimer cet appel"
+                  className="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                >
+                  {deletingId === c.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </button>
               </div>
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  (c.score ?? 0) >= 6
-                    ? "bg-emerald-100 text-emerald-700"
-                    : c.score == null
-                      ? "bg-slate-100 text-slate-500"
-                      : "bg-amber-100 text-amber-700"
-                }`}
-              >
-                {c.score != null ? `${Number(c.score).toFixed(1)}/10` : "—"}
-              </span>
-            </button>
+            </div>
 
             {open && c.ai_feedback && (
               <div className="space-y-4 bg-slate-50 px-6 py-4 text-sm">
