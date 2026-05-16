@@ -147,9 +147,12 @@ export function LiveTranscription() {
   }, [isRecording]);
 
   const lines = useCallStore((s) => s.lines);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Défile UNIQUEMENT à l'intérieur de la zone de transcription,
+    // sans faire défiler toute la page (l'en-tête reste visible).
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
   return (
@@ -223,25 +226,37 @@ export function LiveTranscription() {
         </div>
       )}
 
-      <div className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-2 overflow-y-auto px-4 py-4"
+      >
         {lines.length === 0 && (
           <p className="text-sm text-slate-400">
             La transcription apparaîtra ici dès le début de l&apos;appel…
           </p>
         )}
-        {lines.map((l) => (
-          <div
-            key={l.id}
-            className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
-              l.speaker === "user"
-                ? "ml-auto bg-medical-600 text-white"
-                : "bg-slate-100 text-slate-800"
-            } ${l.isFinal ? "" : "opacity-60"}`}
-          >
-            {l.text}
-          </div>
-        ))}
-        <div ref={bottomRef} />
+        {lines.map((l) => {
+          const isUser = l.speaker === "user";
+          return (
+            <div
+              key={l.id}
+              className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
+            >
+              <span className="mb-0.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                {isUser ? "Vous (closer)" : "Patient"}
+              </span>
+              <div
+                className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                  isUser
+                    ? "bg-medical-600 text-white"
+                    : "bg-amber-100 text-amber-900"
+                } ${l.isFinal ? "" : "opacity-60"}`}
+              >
+                {l.text}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

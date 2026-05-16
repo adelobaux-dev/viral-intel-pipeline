@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronRight, Loader2, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { CARES_LABELS } from "@/lib/cares";
 import type { CallRecord, CaresStep } from "@/lib/types";
 
@@ -61,6 +67,24 @@ export function CallsTable({
     } finally {
       setBusy(false);
     }
+  }
+
+  function downloadTranscript(c: CallRecord, label: string) {
+    if (!c.transcript) {
+      setError("Pas de transcription disponible pour cette conversation.");
+      return;
+    }
+    const date = new Date(c.created_at).toLocaleString("fr-FR");
+    const header = `Conversation : ${label}\nDate : ${date}\n${"-".repeat(40)}\n\n`;
+    const blob = new Blob([header + c.transcript], {
+      type: "text/plain;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `transcription-${label.replace(/[^a-z0-9]/gi, "_")}-${c.id.slice(0, 8)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   if (calls.length === 0) {
@@ -155,6 +179,14 @@ export function CallsTable({
                 >
                   {c.score != null ? `${Number(c.score).toFixed(1)}/10` : "—"}
                 </span>
+                <button
+                  onClick={() => downloadTranscript(c, label)}
+                  disabled={!c.transcript}
+                  title="Télécharger la transcription"
+                  className="rounded-md p-1.5 text-slate-400 transition hover:bg-medical-50 hover:text-medical-600 disabled:opacity-30"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
                 <button
                   onClick={() => deleteIds([c.id], `la conversation "${label}"`)}
                   disabled={busy}
