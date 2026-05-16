@@ -15,7 +15,7 @@ export async function GET() {
   }
 
   try {
-    const { token, expiresIn } = await createEphemeralToken(30);
+    const { token, expiresIn } = await createEphemeralToken(3600);
     return NextResponse.json({ token, expiresIn });
   } catch (err) {
     return NextResponse.json(
