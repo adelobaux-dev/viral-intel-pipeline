@@ -148,11 +148,30 @@ export function LiveTranscription() {
 
   const lines = useCallStore((s) => s.lines);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    // Défile UNIQUEMENT à l'intérieur de la zone de transcription,
-    // sans faire défiler toute la page (l'en-tête reste visible).
+  const stickToBottomRef = useRef(true);
+  const [atBottom, setAtBottom] = useState(true);
+
+  function handleScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const near = distance < 60;
+    stickToBottomRef.current = near;
+    setAtBottom(near);
+  }
+
+  function scrollToBottom() {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
+    stickToBottomRef.current = true;
+    setAtBottom(true);
+  }
+
+  useEffect(() => {
+    // Auto-défilement SEULEMENT si l'utilisateur est déjà en bas :
+    // s'il a remonté pour relire, on ne le ramène pas de force.
+    const el = scrollRef.current;
+    if (el && stickToBottomRef.current) el.scrollTop = el.scrollHeight;
   }, [lines]);
 
   return (
@@ -226,9 +245,11 @@ export function LiveTranscription() {
         </div>
       )}
 
+      <div className="relative min-h-0 flex-1">
       <div
         ref={scrollRef}
-        className="flex-1 space-y-2 overflow-y-auto px-4 py-4"
+        onScroll={handleScroll}
+        className="absolute inset-0 space-y-2 overflow-y-scroll px-4 py-4"
       >
         {lines.length === 0 && (
           <p className="text-sm text-slate-400">
@@ -257,6 +278,15 @@ export function LiveTranscription() {
             </div>
           );
         })}
+      </div>
+      {!atBottom && (
+        <button
+          onClick={scrollToBottom}
+          className="absolute bottom-3 right-3 rounded-full bg-medical-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg hover:bg-medical-700"
+        >
+          ↓ Revenir en bas
+        </button>
+      )}
       </div>
     </div>
   );
