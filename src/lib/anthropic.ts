@@ -190,3 +190,33 @@ Format : 5 à 8 recommandations priorisées, chacune en 1-3 phrases, avec un lib
     ? response.content[0].text
     : "Aucune recommandation générée.";
 }
+
+/**
+ * Rapport de coaching d'équipe destiné au Dr Delobaux : performances,
+ * erreurs, langage inadapté, leviers concrets pour mieux performer.
+ */
+export async function generateTeamReport(
+  dataSummary: string,
+): Promise<string> {
+  const response = await client().messages.create({
+    model: MODEL,
+    max_tokens: 1400,
+    system: `${EXPERT_PERSONA}
+
+Tu produis un RAPPORT DE COACHING confidentiel pour le Dr Delobaux (dirigeant). À partir des données réelles (performances par membre, scores, feedbacks, erreurs techniques, extraits de conversations), analyse :
+1. Performances par collaborateur (forces / faiblesses).
+2. Erreurs récurrentes (techniques ET de communication).
+3. Langage inadapté ou contre-productif détecté (cite des exemples génériques).
+4. 5 leviers prioritaires et actionnables pour augmenter le closing et la signature de devis.
+Sois direct, concret, sans complaisance, en français, format structuré (titres + puces).`,
+    messages: [
+      {
+        role: "user",
+        content: `Données agrégées de l'équipe :\n\n${dataSummary}`,
+      },
+    ],
+  });
+  return response.content[0]?.type === "text"
+    ? response.content[0].text
+    : "Aucun rapport généré.";
+}

@@ -193,7 +193,7 @@ export function ClosingResourcesManager() {
           <p className="mt-2 text-xs text-amber-700">{drive.error}</p>
         )}
         {drive && drive.docs.length > 0 && (
-          <ul className="mt-2 space-y-0.5 text-xs text-slate-600">
+          <ul className="mt-2 h-20 space-y-0.5 overflow-y-scroll rounded border border-slate-200 bg-white p-2 text-xs text-slate-600">
             {drive.docs.map((d, i) => (
               <li key={i}>• {d}</li>
             ))}

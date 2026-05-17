@@ -9,6 +9,7 @@ import { TeamLeaderboard } from "@/components/TeamLeaderboard";
 import { ClosingResourcesManager } from "@/components/ClosingResourcesManager";
 import { AppRecommendations } from "@/components/AppRecommendations";
 import { ErrorLogPanel } from "@/components/ErrorLogPanel";
+import { TeamReportPanel } from "@/components/TeamReportPanel";
 import { CallsTrash } from "@/components/CallsTrash";
 import { ResetRankingsButton } from "@/components/ResetRankingsButton";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
@@ -140,6 +141,12 @@ export default async function DashboardPage() {
         {isAdmin && (
           <section>
             <AppRecommendations />
+          </section>
+        )}
+
+        {isDelobaux && (
+          <section>
+            <TeamReportPanel />
           </section>
         )}
 
