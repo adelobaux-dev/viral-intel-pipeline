@@ -35,6 +35,7 @@ export async function getLiveRecommendation(
   recentLines: string[],
   knowledge?: string,
   mode?: ConsultationMode,
+  userProfile?: string,
 ): Promise<Recommendation> {
   const conversation = recentLines.join("\n");
 
@@ -47,10 +48,14 @@ export async function getLiveRecommendation(
     ? `\n\nRÔLE DE L'INTERVENANT — ADAPTE TES CONSEILS À CE CONTEXTE :\n${obj}`
     : "";
 
+  const profileBlock = userProfile?.trim()
+    ? `\n\nPROFIL DE PERSONNALITÉ DE L'INTERVENANT — adapte le ton et le canal de tes conseils à CE profil :\n${userProfile.trim().slice(0, 1500)}`
+    : "";
+
   const response = await client().messages.create({
     model: MODEL,
     max_tokens: 300,
-    system: `${CABINET_CONTEXT}${modeBlock}${knowledgeBlock}
+    system: `${CABINET_CONTEXT}${modeBlock}${profileBlock}${knowledgeBlock}
 
 Analyse la conversation EN COURS. Donne UN seul conseil de closing, très court (1 phrase max), à lire en un coup d'œil.
 Évalue aussi : "importance" = degré d'importance du conseil maintenant (entier 1 à 10), "closing_score" = estimation de la qualité globale du closing jusqu'ici (entier 0 à 10).
@@ -92,11 +97,17 @@ Réponds STRICTEMENT en JSON :
  * Scoring de fin d'appel : note /10 sur le respect du script C.A.R.E.S.,
  * feedback constructif et résumé patient pour Doctolib.
  */
-export async function scoreCall(transcript: string): Promise<AiFeedback> {
+export async function scoreCall(
+  transcript: string,
+  userProfile?: string,
+): Promise<AiFeedback> {
+  const profileBlock = userProfile?.trim()
+    ? `\n\nPROFIL DE PERSONNALITÉ DE L'INTERVENANT — formule le feedback de façon adaptée à CE profil (canal, ton), et cible les améliorations LES PLUS efficientes pour lui :\n${userProfile.trim().slice(0, 1500)}`
+    : "";
   const response = await client().messages.create({
     model: MODEL,
     max_tokens: 1500,
-    system: `${CABINET_CONTEXT}
+    system: `${CABINET_CONTEXT}${profileBlock}
 
 Tu évalues un appel TERMINÉ. Note le respect du script C.A.R.E.S. et fournis un feedback constructif.
 Réponds STRICTEMENT en JSON :
@@ -207,7 +218,8 @@ Tu produis un RAPPORT DE COACHING confidentiel pour le Dr Delobaux (dirigeant). 
 1. Performances par collaborateur (forces / faiblesses).
 2. Erreurs récurrentes (techniques ET de communication).
 3. Langage inadapté ou contre-productif détecté (cite des exemples génériques).
-4. 5 leviers prioritaires et actionnables pour augmenter le closing et la signature de devis.
+4. 🚩 RED FLAGS COMMUNICATIONNELS PAR UTILISATEUR : pour CHAQUE collaborateur nommé, liste explicitement ses signaux d'alerte de communication (ex : coupe la parole, manque d'empathie, pression excessive, jargon médical anxiogène, survente, absence d'écoute active…) et leur gravité.
+5. 5 leviers prioritaires et actionnables pour augmenter le closing et la signature de devis.
 Sois direct, concret, sans complaisance, en français, format structuré (titres + puces).`,
     messages: [
       {
@@ -219,4 +231,30 @@ Sois direct, concret, sans complaisance, en français, format structuré (titres
   return response.content[0]?.type === "text"
     ? response.content[0].text
     : "Aucun rapport généré.";
+}
+
+/**
+ * Analyse de personnalité (Comm Colors / Process Comm / styles relationnels)
+ * à partir des réponses au questionnaire d'onboarding.
+ */
+export async function analyzePersonality(
+  answersText: string,
+): Promise<string> {
+  const response = await client().messages.create({
+    model: MODEL,
+    max_tokens: 1000,
+    system: `Tu es un expert en analyse de personnalité appliquée à la communication et à la vente : Process Communication Model (Kahler), Comm Colors (rouge/bleu/vert/jaune), DISC, styles relationnels.
+À partir des réponses ci-dessous, produis un PROFIL exploitable pour personnaliser le coaching de cette personne au cabinet (chirurgie esthétique, méthode C.A.R.E.S.).
+Structure (français, concis) :
+- Profil dominant (couleur Comm Colors + base Process Comm probable + style)
+- Forces clés en communication patient
+- Faiblesses / pièges sous stress
+- 🚩 Red flags communicationnels à surveiller
+- Améliorations prioritaires et LES PLUS efficientes pour ce profil
+- Comment lui donner du feedback (canal de communication qui marche pour lui)`,
+    messages: [{ role: "user", content: answersText }],
+  });
+  return response.content[0]?.type === "text"
+    ? response.content[0].text
+    : "Profil non généré.";
 }

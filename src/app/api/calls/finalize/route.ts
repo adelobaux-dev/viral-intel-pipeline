@@ -71,10 +71,22 @@ export async function POST(request: Request) {
 
   const patientName = body.patientName?.trim() || "";
 
-  // 1. Scoring IA
+  // 1. Scoring IA (personnalisé selon le profil de l'intervenant)
+  let userProfile: string | undefined;
+  try {
+    const { data: prof } = await supabase
+      .from("user_profiles")
+      .select("analysis")
+      .eq("user_id", user.id)
+      .maybeSingle<{ analysis: string }>();
+    userProfile = prof?.analysis ?? undefined;
+  } catch {
+    /* table user_profiles absente : ignorer */
+  }
+
   let feedback: AiFeedback;
   try {
-    feedback = await scoreCall(body.transcript);
+    feedback = await scoreCall(body.transcript, userProfile);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Échec scoring IA" },

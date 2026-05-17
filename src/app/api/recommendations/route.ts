@@ -65,10 +65,23 @@ export async function GET(request: Request) {
           .filter(Boolean)
           .join("\n\n");
 
+        let userProfile: string | undefined;
+        try {
+          const { data: prof } = await supabase
+            .from("user_profiles")
+            .select("analysis")
+            .eq("user_id", user.id)
+            .maybeSingle<{ analysis: string }>();
+          userProfile = prof?.analysis ?? undefined;
+        } catch {
+          /* table user_profiles absente : ignorer */
+        }
+
         const rec = await getLiveRecommendation(
           recentLines,
           knowledge,
           mode,
+          userProfile,
         );
         send("recommendation", rec);
       } catch (err) {

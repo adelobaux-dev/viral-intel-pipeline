@@ -60,6 +60,18 @@ export default async function DashboardPage() {
 
   const isDelobaux = (user.email ?? "").toLowerCase().includes("delobaux");
 
+  let hasProfile = true;
+  try {
+    const { data: prof } = await supabase
+      .from("user_profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    hasProfile = !!prof;
+  } catch {
+    hasProfile = true; // table absente : ne pas bloquer
+  }
+
   let team: (AppUser & { perf?: PerformanceTracking })[] = [];
   if (isAdmin) {
     const { data: users } = await supabase
@@ -105,6 +117,24 @@ export default async function DashboardPage() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+        {!hasProfile && (
+          <Link
+            href="/onboarding"
+            className="flex items-center justify-between rounded-xl border border-medical-300 bg-medical-50 px-5 py-4 transition hover:bg-medical-100"
+          >
+            <div>
+              <p className="text-sm font-semibold text-medical-800">
+                Complète ton profil de personnalité (3 min)
+              </p>
+              <p className="text-xs text-medical-700">
+                Pour des conseils et feedbacks adaptés à TA personnalité
+                (Comm Colors / Process Comm).
+              </p>
+            </div>
+            <span className="btn-primary">Commencer</span>
+          </Link>
+        )}
+
         <section className="grid gap-4 sm:grid-cols-3">
           <StatCard
             label="Conversations réalisées"
