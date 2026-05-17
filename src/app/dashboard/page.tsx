@@ -7,6 +7,8 @@ import { StatCard } from "@/components/StatCard";
 import { CallsTable } from "@/components/CallsTable";
 import { TeamLeaderboard } from "@/components/TeamLeaderboard";
 import { ClosingResourcesManager } from "@/components/ClosingResourcesManager";
+import { CallsTrash } from "@/components/CallsTrash";
+import { ResetRankingsButton } from "@/components/ResetRankingsButton";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -37,10 +39,23 @@ export default async function DashboardPage() {
   const callsQuery = supabase
     .from("calls")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(50);
   if (!isAdmin) callsQuery.eq("user_id", user.id);
   const { data: calls } = await callsQuery.returns<CallRecord[]>();
+
+  // Corbeille : conversations supprimées (récupérables)
+  const trashQuery = supabase
+    .from("calls")
+    .select("*")
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false })
+    .limit(50);
+  if (!isAdmin) trashQuery.eq("user_id", user.id);
+  const { data: trash } = await trashQuery.returns<CallRecord[]>();
+
+  const isDelobaux = (user.email ?? "").toLowerCase().includes("delobaux");
 
   let team: (AppUser & { perf?: PerformanceTracking })[] = [];
   if (isAdmin) {
@@ -104,9 +119,12 @@ export default async function DashboardPage() {
 
         {isAdmin && (
           <section>
-            <h2 className="mb-3 text-lg font-semibold text-slate-800">
-              Classement de l&apos;équipe
-            </h2>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-800">
+                Classement de l&apos;équipe
+              </h2>
+              {isDelobaux && <ResetRankingsButton />}
+            </div>
             <TeamLeaderboard team={team} />
           </section>
         )}
@@ -125,6 +143,20 @@ export default async function DashboardPage() {
           </h2>
           <CallsTable
             calls={calls ?? []}
+            showOwner={isAdmin}
+            userById={userById}
+          />
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-lg font-semibold text-slate-800">
+            Corbeille{" "}
+            <span className="text-sm font-normal text-slate-400">
+              ({trash?.length ?? 0})
+            </span>
+          </h2>
+          <CallsTrash
+            calls={trash ?? []}
             showOwner={isAdmin}
             userById={userById}
           />
