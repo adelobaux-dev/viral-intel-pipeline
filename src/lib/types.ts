@@ -1,5 +1,11 @@
 export type UserRole = "admin" | "closer" | "ide" | "doctor";
 
+export type ConsultationMode =
+  | "secretaire"
+  | "chirurgien"
+  | "closeuse"
+  | "ide";
+
 export interface AppUser {
   id: string;
   email: string;

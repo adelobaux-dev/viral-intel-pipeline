@@ -1,6 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { CABINET_CONTEXT } from "./cares";
-import type { AiFeedback, CaresStep, Recommendation } from "./types";
+import { CABINET_CONTEXT, modeObjective } from "./cares";
+import type {
+  AiFeedback,
+  CaresStep,
+  ConsultationMode,
+  Recommendation,
+} from "./types";
 
 let _client: Anthropic | null = null;
 
@@ -29,6 +34,7 @@ function extractJson(text: string): unknown {
 export async function getLiveRecommendation(
   recentLines: string[],
   knowledge?: string,
+  mode?: ConsultationMode,
 ): Promise<Recommendation> {
   const conversation = recentLines.join("\n");
 
@@ -36,10 +42,15 @@ export async function getLiveRecommendation(
     ? `\n\nRESSOURCES DE CLOSING DU CABINET (à privilégier dans tes conseils) :\n${knowledge.trim()}`
     : "";
 
+  const obj = modeObjective(mode);
+  const modeBlock = obj
+    ? `\n\nRÔLE DE L'INTERVENANT — ADAPTE TES CONSEILS À CE CONTEXTE :\n${obj}`
+    : "";
+
   const response = await client().messages.create({
     model: MODEL,
     max_tokens: 300,
-    system: `${CABINET_CONTEXT}${knowledgeBlock}
+    system: `${CABINET_CONTEXT}${modeBlock}${knowledgeBlock}
 
 Analyse la conversation EN COURS. Donne UN seul conseil de closing, très court (1 phrase max), à lire en un coup d'œil.
 Réponds STRICTEMENT en JSON :
@@ -101,4 +112,38 @@ Réponds STRICTEMENT en JSON :
   const parsed = extractJson(text) as AiFeedback;
   parsed.score = Math.max(0, Math.min(10, Number(parsed.score) || 0));
   return parsed;
+}
+
+/**
+ * Auto-apprentissage : à la fin de chaque conversation, extrait des
+ * enseignements réutilisables (objections rencontrées + meilleures réponses,
+ * formulations qui ont marché) pour enrichir la base de connaissances et
+ * améliorer les futurs conseils.
+ */
+export async function extractLearnings(
+  transcript: string,
+): Promise<{ title: string; content: string } | null> {
+  try {
+    const response = await client().messages.create({
+      model: MODEL,
+      max_tokens: 600,
+      system: `${CABINET_CONTEXT}
+
+À partir de la conversation ci-dessous, extrais 2 à 5 enseignements DURABLES et réutilisables pour de futures conversations de closing (objections rencontrées + meilleure réponse, formulations efficaces, signaux d'achat). Sois concret et générique (pas de données patient nominatives).
+Réponds STRICTEMENT en JSON : {"title":"<titre court>","content":"<puces d'enseignements>"}`,
+      messages: [
+        { role: "user", content: `Conversation :\n\n${transcript}` },
+      ],
+    });
+    const text =
+      response.content[0]?.type === "text" ? response.content[0].text : "";
+    const parsed = extractJson(text) as { title: string; content: string };
+    if (!parsed?.content?.trim()) return null;
+    return {
+      title: parsed.title?.trim() || "Apprentissage automatique",
+      content: parsed.content.trim(),
+    };
+  } catch {
+    return null;
+  }
 }

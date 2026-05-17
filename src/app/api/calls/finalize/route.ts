@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { scoreCall } from "@/lib/anthropic";
+import { scoreCall, extractLearnings } from "@/lib/anthropic";
 import { sendPatientEmail, uploadTranscriptToDrive } from "@/lib/google";
 import { CARES_LABELS } from "@/lib/cares";
+import { createAdminClient } from "@/lib/supabase/server";
 import type { AiFeedback } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -99,6 +100,24 @@ export async function POST(request: Request) {
   }
 
   await supabase.rpc("refresh_performance", { target_user: user.id });
+
+  // 2b. Auto-apprentissage : enrichit la base de connaissances pour
+  // améliorer les futurs conseils (best-effort, non bloquant).
+  try {
+    const learning = await extractLearnings(body.transcript);
+    if (learning) {
+      await createAdminClient()
+        .from("closing_resources")
+        .insert({
+          title: `🤖 Auto-appris — ${learning.title}`,
+          content: learning.content,
+          kind: "auto",
+          created_by: user.id,
+        });
+    }
+  } catch {
+    // l'auto-apprentissage ne doit jamais bloquer la finalisation
+  }
 
   // 3. Intégrations Google (best-effort, non bloquantes)
   const integrations: Record<string, string> = {};

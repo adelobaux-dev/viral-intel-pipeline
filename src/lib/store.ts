@@ -1,16 +1,22 @@
 "use client";
 
 import { create } from "zustand";
-import type { Recommendation, TranscriptLine } from "./types";
+import type {
+  ConsultationMode,
+  Recommendation,
+  TranscriptLine,
+} from "./types";
 
 interface CallState {
   isRecording: boolean;
   patientName: string;
   callId: string | null;
   startedAt: number | null;
+  mode: ConsultationMode;
   lines: TranscriptLine[];
   recommendations: Recommendation[];
 
+  setMode: (mode: ConsultationMode) => void;
   setPatientName: (name: string) => void;
   startCall: (callId: string) => void;
   stopCall: () => void;
@@ -27,8 +33,11 @@ export const useCallStore = create<CallState>((set) => ({
   patientName: "",
   callId: null,
   startedAt: null,
+  mode: "closeuse",
   lines: [],
   recommendations: [],
+
+  setMode: (mode) => set({ mode }),
 
   setPatientName: (name) => set({ patientName: name }),
 

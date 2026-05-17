@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Lightbulb } from "lucide-react";
 import { useCallStore } from "@/lib/store";
-import { CARES_LABELS } from "@/lib/cares";
+import { CARES_LABELS, CONSULTATION_MODES } from "@/lib/cares";
 import type { Recommendation } from "@/lib/types";
 
 const POLL_MS = 10000;
@@ -19,6 +19,8 @@ export function RecommendationCards() {
   const isRecording = useCallStore((s) => s.isRecording);
   const recommendations = useCallStore((s) => s.recommendations);
   const addRecommendation = useCallStore((s) => s.addRecommendation);
+  const mode = useCallStore((s) => s.mode);
+  const setMode = useCallStore((s) => s.setMode);
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -33,7 +35,8 @@ export function RecommendationCards() {
       if (lines.length === 0) return;
 
       esRef.current?.close();
-      const url = `/api/recommendations?lines=${encodeURIComponent(
+      const currentMode = useCallStore.getState().mode;
+      const url = `/api/recommendations?mode=${currentMode}&lines=${encodeURIComponent(
         lines.join("\n"),
       )}`;
       const es = new EventSource(url);
@@ -67,7 +70,25 @@ export function RecommendationCards() {
           Recommandations C.A.R.E.S.
         </h2>
       </div>
-      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+
+      <div className="flex flex-wrap gap-1.5 border-b border-slate-100 px-3 py-2">
+        {CONSULTATION_MODES.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMode(m.key)}
+            title={m.objective}
+            className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
+              mode === m.key
+                ? "bg-medical-600 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-scroll p-4">
         {recommendations.length === 0 && (
           <p className="text-sm text-slate-400">
             Les conseils de closing s&apos;afficheront ici toutes les 10

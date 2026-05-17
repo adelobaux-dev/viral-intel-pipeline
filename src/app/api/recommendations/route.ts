@@ -23,6 +23,9 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const linesParam = searchParams.get("lines") ?? "";
+  const mode = (searchParams.get("mode") ?? undefined) as
+    | import("@/lib/types").ConsultationMode
+    | undefined;
   const recentLines = linesParam
     .split("\n")
     .map((l) => l.trim())
@@ -62,7 +65,11 @@ export async function GET(request: Request) {
           .filter(Boolean)
           .join("\n\n");
 
-        const rec = await getLiveRecommendation(recentLines, knowledge);
+        const rec = await getLiveRecommendation(
+          recentLines,
+          knowledge,
+          mode,
+        );
         send("recommendation", rec);
       } catch (err) {
         send("error", {
