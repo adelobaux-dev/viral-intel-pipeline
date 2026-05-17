@@ -92,32 +92,35 @@ export default async function DashboardPage() {
   const userById = new Map(team.map((u) => [u.id, u.name]));
 
   return (
-    <main className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-medical-600">
-              Cabinet Dr Alexis Delobaux
-            </p>
-            <h1 className="text-xl font-bold text-slate-800">
-              Bonjour {profile?.name ?? user.email}
-            </h1>
-            <p className="text-sm text-slate-500">
-              Rôle :{" "}
-              <span className="font-medium capitalize">{role}</span>
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/live-call" className="btn-primary">
-              <PhoneCall className="h-4 w-4" />
-              Démarrer la conversation
-            </Link>
-            <SignOutButton />
-          </div>
-        </div>
-      </header>
-
+    <main className="min-h-screen">
       <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+        <header className="overflow-hidden rounded-2xl bg-gradient-to-br from-medical-800 via-medical-700 to-medical-900 px-7 py-6 text-white shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-medical-200">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
+                Cabinet Dr Alexis Delobaux · Live
+              </p>
+              <h1 className="mt-1.5 text-3xl font-bold tracking-tight">
+                Bonjour {profile?.name ?? user.email}
+              </h1>
+              <p className="mt-1 text-sm text-medical-100">
+                Rôle : <span className="font-semibold capitalize">{role}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/live-call"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-medical-800 shadow-sm transition hover:bg-medical-50"
+              >
+                <PhoneCall className="h-4 w-4" />
+                Démarrer la conversation
+              </Link>
+              <SignOutButton />
+            </div>
+          </div>
+        </header>
+
         {!hasProfile && (
           <Link
             href="/onboarding"
@@ -144,10 +147,12 @@ export default async function DashboardPage() {
           <StatCard
             label="Score moyen"
             value={`${Number(perf?.average_score ?? 0).toFixed(1)} / 10`}
+            accent="emerald"
           />
           <StatCard
             label="Taux de conversion"
             value={`${Number(perf?.conversion_rate ?? 0).toFixed(0)} %`}
+            accent="amber"
           />
         </section>
 
