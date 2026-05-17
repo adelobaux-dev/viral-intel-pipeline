@@ -286,7 +286,7 @@ export function ClosingResourcesManager() {
       <p className="mb-1 text-sm font-semibold text-slate-700">
         Ressources enregistrées
       </p>
-      <div className="h-40 divide-y divide-slate-100 overflow-y-scroll rounded-lg border border-slate-200 bg-slate-50">
+      <div className="h-28 divide-y divide-slate-100 overflow-y-scroll rounded-lg border border-slate-200 bg-slate-50 text-sm">
         {loading && (
           <p className="px-3 py-3 text-sm text-slate-400">Chargement…</p>
         )}
