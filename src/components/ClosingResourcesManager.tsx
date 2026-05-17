@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BookPlus,
   FolderSync,
+  FolderUp,
   Loader2,
   RefreshCw,
   Trash2,
+  Upload,
 } from "lucide-react";
 
 interface Resource {
@@ -31,6 +33,45 @@ export function ClosingResourcesManager() {
     error: string | null;
   } | null>(null);
   const [driveLoading, setDriveLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const folderInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    // webkitdirectory n'est pas typé : on l'ajoute manuellement.
+    folderInputRef.current?.setAttribute("webkitdirectory", "");
+    folderInputRef.current?.setAttribute("directory", "");
+  }, []);
+
+  async function handleFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    setUploading(true);
+    setUploadMsg(null);
+    try {
+      const fd = new FormData();
+      Array.from(fileList).forEach((f) => fd.append("files", f));
+      const res = await fetch("/api/resources/upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Échec de l'import");
+      setUploadMsg(
+        `${data.importedCount} fichier(s) importé(s)` +
+          (data.skippedCount
+            ? `, ${data.skippedCount} ignoré(s) (type non lu : PDF illisible, Word, audio, vidéo…)`
+            : ""),
+      );
+      load();
+    } catch (e) {
+      setUploadMsg(e instanceof Error ? e.message : "Échec de l'import");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (folderInputRef.current) folderInputRef.current.value = "";
+    }
+  }
 
   async function refreshDrive() {
     setDriveLoading(true);
@@ -157,6 +198,58 @@ export function ClosingResourcesManager() {
               <li key={i}>• {d}</li>
             ))}
           </ul>
+        )}
+      </div>
+
+      <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Upload className="h-4 w-4 text-medical-600" />
+          <span className="text-sm font-semibold text-slate-700">
+            Importer depuis mon ordinateur
+          </span>
+        </div>
+        <p className="mb-3 text-xs text-slate-500">
+          Fichiers <strong>.txt, .md, .csv, .pdf</strong> (ou un dossier
+          entier). Le texte est lu et ajouté aux connaissances de l&apos;IA.
+        </p>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".txt,.md,.csv,.json,.pdf,text/plain,application/pdf"
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <input
+          ref={folderInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex items-center gap-1.5 rounded-md bg-medical-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-medical-700 disabled:opacity-50"
+          >
+            <Upload className="h-3.5 w-3.5" /> Choisir des fichiers
+          </button>
+          <button
+            type="button"
+            onClick={() => folderInputRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <FolderUp className="h-3.5 w-3.5" /> Choisir un dossier
+          </button>
+          {uploading && (
+            <Loader2 className="h-4 w-4 animate-spin text-medical-600" />
+          )}
+        </div>
+        {uploadMsg && (
+          <p className="mt-2 text-xs text-slate-600">{uploadMsg}</p>
         )}
       </div>
 
