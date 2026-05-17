@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ErrorReporter } from "@/components/ErrorReporter";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -17,7 +18,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={inter.variable}>
-      <body>{children}</body>
+      <body>
+        <ErrorReporter />
+        {children}
+      </body>
     </html>
   );
 }
