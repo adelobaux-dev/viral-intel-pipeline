@@ -26,6 +26,7 @@ export async function GET(request: Request) {
   const mode = (searchParams.get("mode") ?? undefined) as
     | import("@/lib/types").ConsultationMode
     | undefined;
+  const patientName = (searchParams.get("patient") ?? "").trim();
   const recentLines = linesParam
     .split("\n")
     .map((l) => l.trim())
@@ -61,9 +62,38 @@ export async function GET(request: Request) {
 
         // Ressources du Google Drive (mises à jour automatiquement, cache 5 min)
         const drive = await getDriveKnowledge();
-        const knowledge = [manualKnowledge, drive.text]
-          .filter(Boolean)
-          .join("\n\n");
+
+        // Dossier patient partagé : ce que la secrétaire / le chirurgien
+        // ont déjà recueilli sur ce patient lors d'échanges précédents.
+        let patientBlock = "";
+        if (patientName.length >= 2) {
+          try {
+            const { createAdminClient } = await import("@/lib/supabase/server");
+            const { data: prior } = await createAdminClient()
+              .from("calls")
+              .select("score, ai_feedback, created_at")
+              .ilike("patient_name", patientName)
+              .is("deleted_at", null)
+              .order("created_at", { ascending: false })
+              .limit(8);
+            const lines2 = (prior ?? [])
+              .filter((c) => c.ai_feedback)
+              .map((c) => {
+                const ps = (c.ai_feedback as { patient_summary?: Record<string, string> })
+                  .patient_summary;
+                return `- ${new Date(c.created_at).toLocaleDateString("fr-FR")}: motif ${ps?.motif ?? "?"}, budget ${ps?.budget ?? "?"}, notes ${ps?.notes ?? "?"}`;
+              })
+              .join("\n");
+            if (lines2)
+              patientBlock = `\n\nHISTORIQUE PATIENT (recueilli par l'équipe lors d'échanges précédents — utilise-le pour orienter ce closing) :\n${lines2}`;
+          } catch {
+            /* pas d'historique : ignorer */
+          }
+        }
+
+        const knowledge =
+          [manualKnowledge, drive.text].filter(Boolean).join("\n\n") +
+          patientBlock;
 
         let userProfile: string | undefined;
         try {

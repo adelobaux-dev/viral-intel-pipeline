@@ -6,6 +6,7 @@ import { ArrowLeft, PhoneCall, PhoneOff, Loader2 } from "lucide-react";
 import { LiveTranscription } from "@/components/LiveTranscription";
 import { RecommendationCards } from "@/components/RecommendationCards";
 import { CallFeedbackModal } from "@/components/CallFeedbackModal";
+import { PatientDossier } from "@/components/PatientDossier";
 import { SignOutButton } from "@/components/SignOutButton";
 import { useCallStore } from "@/lib/store";
 import type { AiFeedback } from "@/lib/types";
@@ -159,6 +160,8 @@ export default function LiveCallPage() {
       {error && (
         <div className="bg-red-50 px-6 py-2 text-sm text-red-700">{error}</div>
       )}
+
+      <PatientDossier />
 
       <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-3">
         <div className="lg:col-span-2">

@@ -62,10 +62,10 @@ export function RecommendationCards() {
       if (lines.length === 0) return;
 
       esRef.current?.close();
-      const currentMode = useCallStore.getState().mode;
-      const url = `/api/recommendations?mode=${currentMode}&lines=${encodeURIComponent(
-        lines.join("\n"),
-      )}`;
+      const st = useCallStore.getState();
+      const url = `/api/recommendations?mode=${st.mode}&patient=${encodeURIComponent(
+        st.patientName || "",
+      )}&lines=${encodeURIComponent(lines.join("\n"))}`;
       const es = new EventSource(url);
       esRef.current = es;
 
