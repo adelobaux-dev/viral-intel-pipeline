@@ -84,8 +84,24 @@ export async function GET(request: Request) {
     .join("\n")
     .slice(0, 9000);
 
+  let ctxBlock = "";
   try {
-    const content = await generateAppRecommendations(summary);
+    const { data: ctxs } = await admin
+      .from("improvement_context")
+      .select("user_email, content, created_at")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (ctxs && ctxs.length) {
+      ctxBlock =
+        "\n\nCONTEXTES FOURNIS PAR LES UTILISATEURS (à fort poids) :\n" +
+        ctxs.map((c) => `- ${c.user_email ?? "?"}: ${c.content}`).join("\n");
+    }
+  } catch {
+    /* table improvement_context absente : ignorer */
+  }
+
+  try {
+    const content = await generateAppRecommendations(summary + ctxBlock);
     await admin.from("app_recommendations").insert({ content });
     return NextResponse.json({
       content,

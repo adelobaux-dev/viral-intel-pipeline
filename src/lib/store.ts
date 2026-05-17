@@ -26,7 +26,7 @@ interface CallState {
   reset: () => void;
 }
 
-const MAX_RECOMMENDATIONS = 6;
+const MAX_RECOMMENDATIONS = 40;
 
 export const useCallStore = create<CallState>((set) => ({
   isRecording: false,

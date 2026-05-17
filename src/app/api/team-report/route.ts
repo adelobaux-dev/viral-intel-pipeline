@@ -84,7 +84,23 @@ export async function GET(request: Request) {
     .join("\n")
     .slice(0, 9000);
 
-  const summary = `PERFORMANCES PAR MEMBRE :\n${perfBlock}\n\nCONVERSATIONS RÉCENTES :\n${callsBlock}${errorsBlock}`;
+  let ctxBlock = "";
+  try {
+    const { data: ctxs } = await admin
+      .from("improvement_context")
+      .select("user_email, content")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (ctxs && ctxs.length) {
+      ctxBlock =
+        "\n\nCONTEXTES FOURNIS PAR LES UTILISATEURS :\n" +
+        ctxs.map((c) => `- ${c.user_email ?? "?"}: ${c.content}`).join("\n");
+    }
+  } catch {
+    /* table absente : ignorer */
+  }
+
+  const summary = `PERFORMANCES PAR MEMBRE :\n${perfBlock}\n\nCONVERSATIONS RÉCENTES :\n${callsBlock}${errorsBlock}${ctxBlock}`;
 
   try {
     const content = await generateTeamReport(summary);

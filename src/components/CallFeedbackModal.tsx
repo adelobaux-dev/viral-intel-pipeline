@@ -16,7 +16,25 @@ export function CallFeedbackModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [ctx, setCtx] = useState("");
+  const [ctxSending, setCtxSending] = useState(false);
+  const [ctxSent, setCtxSent] = useState(false);
   const s = feedback.patient_summary;
+
+  async function sendContext() {
+    if (!ctx.trim()) return;
+    setCtxSending(true);
+    try {
+      const res = await fetch("/api/improvement-context", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: ctx }),
+      });
+      if (res.ok) setCtxSent(true);
+    } finally {
+      setCtxSending(false);
+    }
+  }
 
   const summaryText = `Motif: ${s.motif}\nTaille/Poids: ${s.taille_poids}\nBudget: ${s.budget}\nNotes: ${s.notes}`;
 
@@ -130,6 +148,34 @@ export function CallFeedbackModal({
               </p>
             </div>
           )}
+
+          <div className="rounded-lg border border-medical-200 bg-medical-50 p-3">
+            <label className="text-sm font-semibold text-slate-700">
+              Contexte pour améliorer l&apos;application (optionnel)
+            </label>
+            <p className="mb-2 text-xs text-slate-500">
+              Ton retour est pris en compte par l&apos;IA pour améliorer
+              l&apos;app (chaque contexte est propre à ton usage).
+            </p>
+            <textarea
+              className="input min-h-[80px]"
+              placeholder="Ex : le patient était pressé, l'app a mis trop de temps à réagir ; il manque un script pour l'objection délai…"
+              value={ctx}
+              onChange={(e) => setCtx(e.target.value)}
+              disabled={ctxSent}
+            />
+            <button
+              onClick={sendContext}
+              disabled={ctxSending || ctxSent || !ctx.trim()}
+              className="btn-secondary mt-2 text-xs"
+            >
+              {ctxSent
+                ? "Merci, contexte enregistré ✓"
+                : ctxSending
+                  ? "Envoi…"
+                  : "Envoyer ce contexte"}
+            </button>
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
