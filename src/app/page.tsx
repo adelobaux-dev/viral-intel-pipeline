@@ -17,7 +17,7 @@ export default async function HomePage() {
           Cabinet Dr Alexis Delobaux
         </p>
         <h1 className="text-4xl font-bold sm:text-5xl">
-          Assistant de closing en temps réel
+          Assistant en communication patient en temps réel
         </h1>
         <p className="mt-5 text-lg text-medical-100">
           Transcription live, recommandations IA selon la méthode C.A.R.E.S.,

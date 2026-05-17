@@ -38,7 +38,7 @@ export const CARES_LABELS: Record<CaresStep, string> = CARES_STEPS.reduce(
  * Prompt système partagé décrivant la posture de closing du cabinet.
  * Réutilisé pour les recommandations temps réel ET le scoring final.
  */
-export const CABINET_CONTEXT = `Tu es un assistant de closing haut de gamme pour le Dr Alexis Delobaux (chirurgie esthétique : SMART BBL, remodelage costal).
+export const CABINET_CONTEXT = `Tu es un assistant en communication patient haut de gamme pour le Dr Alexis Delobaux (chirurgie esthétique : SMART BBL, remodelage costal).
 Tu accompagnes des closers, IDE et médecins pendant des échanges avec des patients.
 Tu raisonnes selon la méthode C.A.R.E.S. du cabinet :
 - Connecter : créer le lien, instaurer la confiance.

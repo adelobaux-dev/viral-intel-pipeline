@@ -5,9 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Closing Assistant — Cabinet Dr Alexis Delobaux",
+  title: "Assistant en communication patient — Cabinet Dr Alexis Delobaux",
   description:
-    "Assistant de closing en temps réel pour le cabinet de chirurgie esthétique du Dr Alexis Delobaux.",
+    "Assistant en communication patient en temps réel pour le cabinet de chirurgie esthétique du Dr Alexis Delobaux.",
 };
 
 export default function RootLayout({
