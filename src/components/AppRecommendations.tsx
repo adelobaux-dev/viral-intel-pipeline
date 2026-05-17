@@ -1,20 +1,36 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Loader2, Sparkles, RefreshCw, X } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  RotateCcw,
+  Sparkles,
+  RefreshCw,
+  X,
+} from "lucide-react";
 
-const DONE_KEY = "appreco.done";
+const COUNT_KEY = "appreco.counts";
 const HIDE_KEY = "appreco.hidden";
-function loadSet(k: string): Set<string> {
+const ARCHIVE_THRESHOLD = 3; // coché 3 fois → archivé
+
+function loadCounts(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(COUNT_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+function loadHidden(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
-    return new Set(JSON.parse(window.localStorage.getItem(k) || "[]"));
+    return new Set(JSON.parse(window.localStorage.getItem(HIDE_KEY) || "[]"));
   } catch {
     return new Set();
   }
-}
-function saveSet(k: string, s: Set<string>) {
-  window.localStorage.setItem(k, JSON.stringify(Array.from(s)));
 }
 
 export function AppRecommendations() {
@@ -22,12 +38,13 @@ export function AppRecommendations() {
   const [date, setDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<Set<string>>(new Set());
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
-    setDone(loadSet(DONE_KEY));
-    setHidden(loadSet(HIDE_KEY));
+    setCounts(loadCounts());
+    setHidden(loadHidden());
   }, []);
 
   const items = useMemo(
@@ -39,25 +56,28 @@ export function AppRecommendations() {
     [content],
   );
 
-  function toggleDone(t: string) {
-    setDone((prev) => {
-      const n = new Set(prev);
-      n.has(t) ? n.delete(t) : n.add(t);
-      saveSet(DONE_KEY, n);
+  function setCount(t: string, value: number) {
+    setCounts((prev) => {
+      const n = { ...prev, [t]: value };
+      window.localStorage.setItem(COUNT_KEY, JSON.stringify(n));
       return n;
     });
+  }
+  function check(t: string) {
+    setCount(t, (counts[t] ?? 0) + 1);
+  }
+  function reactivate(t: string) {
+    setCount(t, 0);
   }
   function hide(t: string) {
     setHidden((prev) => {
       const n = new Set(prev).add(t);
-      saveSet(HIDE_KEY, n);
+      window.localStorage.setItem(HIDE_KEY, JSON.stringify(Array.from(n)));
       return n;
     });
   }
-  // Une ligne est un "titre de section" seulement si courte et finissant
-  // par ":" — sinon c'est une recommandation (avec case à cocher + suppr.).
-  const isItem = (l: string) =>
-    !(l.length < 60 && /[:：]\s*$/.test(l));
+
+  const isItem = (l: string) => !(l.length < 60 && /[:：]\s*$/.test(l));
 
   async function load(force = false) {
     setLoading(true);
@@ -67,9 +87,7 @@ export function AppRecommendations() {
         `/api/app-recommendations${force ? "?force=1" : ""}`,
       );
       const data = await res.json();
-      if (!res.ok && !data.content) {
-        throw new Error(data.error || "Échec");
-      }
+      if (!res.ok && !data.content) throw new Error(data.error || "Échec");
       setContent(data.content ?? null);
       setDate(data.created_at ?? null);
     } catch (e) {
@@ -82,6 +100,11 @@ export function AppRecommendations() {
   useEffect(() => {
     load(false);
   }, []);
+
+  const visible = items.filter((l) => !hidden.has(l));
+  const archived = visible.filter(
+    (l) => isItem(l) && (counts[l] ?? 0) >= ARCHIVE_THRESHOLD,
+  );
 
   return (
     <div className="card p-5">
@@ -106,9 +129,8 @@ export function AppRecommendations() {
         </button>
       </div>
       <p className="mb-3 text-xs text-slate-500">
-        Analyse automatique des conversations (~toutes les 48 h), vue par des
-        experts business / closing / négociation (Chris Voss, Hormozi, Dan
-        Kennedy…).
+        Coche une recommandation à chaque avancée : après{" "}
+        {ARCHIVE_THRESHOLD} validations elle passe en historique.
         {date && (
           <>
             {" "}
@@ -123,55 +145,89 @@ export function AppRecommendations() {
           {error}
         </p>
       )}
-
       {loading && !content && (
-        <p className="py-4 text-sm text-slate-400">
-          Génération en cours… (cela peut prendre quelques secondes)
-        </p>
+        <p className="py-4 text-sm text-slate-400">Génération en cours…</p>
       )}
 
       {content && (
         <div className="max-h-96 space-y-1 overflow-y-scroll rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
-          {items
-            .filter((l) => !hidden.has(l))
-            .map((l, i) =>
-              isItem(l) ? (
-                <div
-                  key={i}
-                  className="group flex items-start gap-2 rounded-md px-2 py-1 hover:bg-white"
-                >
-                  <button
-                    onClick={() => toggleDone(l)}
-                    title="Marquer comme fait"
-                    className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                      done.has(l)
-                        ? "border-emerald-500 bg-emerald-500 text-white"
-                        : "border-slate-300"
-                    }`}
-                  >
-                    {done.has(l) && <Check className="h-3 w-3" />}
-                  </button>
-                  <span
-                    className={
-                      done.has(l) ? "flex-1 text-slate-400 line-through" : "flex-1"
-                    }
-                  >
-                    {l}
-                  </span>
-                  <button
-                    onClick={() => hide(l)}
-                    title="Supprimer cette recommandation"
-                    className="shrink-0 text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-red-600"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ) : (
+          {visible.map((l, i) => {
+            if (!isItem(l))
+              return (
                 <p key={i} className="px-2 pt-2 font-semibold text-slate-800">
                   {l}
                 </p>
-              ),
+              );
+            const c = counts[l] ?? 0;
+            if (c >= ARCHIVE_THRESHOLD) return null; // → historique
+            return (
+              <div
+                key={i}
+                className="group flex items-start gap-2 rounded-md px-2 py-1 hover:bg-white"
+              >
+                <button
+                  onClick={() => check(l)}
+                  title={`Valider (${c}/${ARCHIVE_THRESHOLD})`}
+                  className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                    c > 0
+                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      : "border-slate-300"
+                  }`}
+                >
+                  {c > 0 && <Check className="h-3 w-3" />}
+                </button>
+                <span className="flex-1">{l}</span>
+                {c > 0 && (
+                  <span className="shrink-0 rounded-full bg-emerald-100 px-1.5 text-[10px] font-semibold text-emerald-700">
+                    {c}/{ARCHIVE_THRESHOLD}
+                  </span>
+                )}
+                <button
+                  onClick={() => hide(l)}
+                  title="Supprimer définitivement"
+                  className="shrink-0 text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-red-600"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {archived.length > 0 && (
+        <div className="mt-3">
+          <button
+            onClick={() => setShowHistory((s) => !s)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700"
+          >
+            {showHistory ? (
+              <ChevronDown className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5" />
             )}
+            Historique des recommandations validées ({archived.length})
+          </button>
+          {showHistory && (
+            <div className="mt-2 max-h-56 space-y-1 overflow-y-scroll rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-500">
+              {archived.map((l, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2 rounded-md px-2 py-1"
+                >
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                  <span className="flex-1 line-through">{l}</span>
+                  <button
+                    onClick={() => reactivate(l)}
+                    title="Réactiver"
+                    className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-medical-600 hover:text-medical-800"
+                  >
+                    <RotateCcw className="h-3 w-3" /> Réactiver
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
