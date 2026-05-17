@@ -50,7 +50,10 @@ export async function GET(request: Request) {
       }
 
       try {
-        const { data: resources } = await supabase
+        // Lecture via clé service : l'IA profite des ressources pour TOUS
+        // les rôles, même si la lecture directe est réservée aux admins.
+        const { createAdminClient } = await import("@/lib/supabase/server");
+        const { data: resources } = await createAdminClient()
           .from("closing_resources")
           .select("title, content")
           .order("created_at", { ascending: false })

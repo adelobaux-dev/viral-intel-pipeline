@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,20 @@ export async function GET() {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
+  // Les ressources enregistrées ne sont visibles QUE par les admins.
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single<{ role: string }>();
+  if (profile?.role !== "admin") {
+    return NextResponse.json(
+      { error: "Réservé aux administrateurs" },
+      { status: 403 },
+    );
+  }
+
+  const { data, error } = await createAdminClient()
     .from("closing_resources")
     .select("id, title, content, kind, created_at")
     .order("created_at", { ascending: false });
