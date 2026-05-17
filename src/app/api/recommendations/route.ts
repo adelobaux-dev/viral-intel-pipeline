@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getLiveRecommendation } from "@/lib/anthropic";
+import { getDriveKnowledge } from "@/lib/google";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -50,10 +51,16 @@ export async function GET(request: Request) {
           .select("title, content")
           .order("created_at", { ascending: false })
           .limit(20);
-        const knowledge = (resources ?? [])
+        const manualKnowledge = (resources ?? [])
           .map((r) => `### ${r.title}\n${r.content}`)
           .join("\n\n")
           .slice(0, 6000);
+
+        // Ressources du Google Drive (mises à jour automatiquement, cache 5 min)
+        const drive = await getDriveKnowledge();
+        const knowledge = [manualKnowledge, drive.text]
+          .filter(Boolean)
+          .join("\n\n");
 
         const rec = await getLiveRecommendation(recentLines, knowledge);
         send("recommendation", rec);

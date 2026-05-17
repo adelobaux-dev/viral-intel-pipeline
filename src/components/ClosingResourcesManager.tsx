@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookPlus, Loader2, Trash2 } from "lucide-react";
+import {
+  BookPlus,
+  FolderSync,
+  Loader2,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 
 interface Resource {
   id: string;
@@ -18,6 +24,36 @@ export function ClosingResourcesManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [drive, setDrive] = useState<{
+    connected: boolean;
+    count: number;
+    docs: string[];
+    error: string | null;
+  } | null>(null);
+  const [driveLoading, setDriveLoading] = useState(false);
+
+  async function refreshDrive() {
+    setDriveLoading(true);
+    try {
+      const res = await fetch("/api/resources/drive");
+      const data = await res.json();
+      if (res.ok) setDrive(data);
+      else setDrive({ connected: false, count: 0, docs: [], error: data.error });
+    } catch {
+      setDrive({
+        connected: false,
+        count: 0,
+        docs: [],
+        error: "Erreur réseau",
+      });
+    } finally {
+      setDriveLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refreshDrive();
+  }, []);
 
   async function load() {
     try {
@@ -74,6 +110,55 @@ export function ClosingResourcesManager() {
         utilisées par l&apos;IA pendant les conversations, en plus de la méthode
         C.A.R.E.S. Réservé au Dr Delobaux / Prescillia.
       </p>
+
+      <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <FolderSync className="h-4 w-4 text-medical-600" />
+            <span className="text-sm font-semibold text-slate-700">
+              Dossier Google Drive
+            </span>
+            {drive &&
+              (drive.connected ? (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  connecté · {drive.count} document(s)
+                </span>
+              ) : (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                  non connecté
+                </span>
+              ))}
+          </div>
+          <button
+            type="button"
+            onClick={refreshDrive}
+            disabled={driveLoading}
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            {driveLoading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5" />
+            )}
+            Rafraîchir le Drive
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-slate-500">
+          Les documents Google Docs et fichiers texte de ton dossier Drive (et
+          ses sous-dossiers) sont lus automatiquement et mis à jour ~toutes les
+          5 min. Tu peux ajouter des documents/sous-dossiers quand tu veux.
+        </p>
+        {drive?.error && (
+          <p className="mt-2 text-xs text-amber-700">{drive.error}</p>
+        )}
+        {drive && drive.docs.length > 0 && (
+          <ul className="mt-2 space-y-0.5 text-xs text-slate-600">
+            {drive.docs.map((d, i) => (
+              <li key={i}>• {d}</li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <form onSubmit={addResource} className="mb-5 space-y-3">
         <input
