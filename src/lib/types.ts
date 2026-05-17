@@ -69,6 +69,9 @@ export interface Recommendation {
   id: string;
   step: CaresStep;
   message: string;
-  urgency: "low" | "medium" | "high";
+  /** Degré d'importance du conseil, 1 → 10. */
+  importance: number;
+  /** Estimation live de la qualité globale du closing, 0 → 10. */
+  closingScore: number;
   createdAt: number;
 }

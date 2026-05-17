@@ -5,15 +5,42 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Lightbulb } from "lucide-react";
 import { useCallStore } from "@/lib/store";
 import { CARES_LABELS, CONSULTATION_MODES } from "@/lib/cares";
-import type { Recommendation } from "@/lib/types";
 
 const POLL_MS = 10000;
 
-const urgencyStyles: Record<Recommendation["urgency"], string> = {
-  low: "border-medical-200 bg-medical-50",
-  medium: "border-amber-200 bg-amber-50",
-  high: "border-red-300 bg-red-50",
-};
+// Importance 1-10 : rouge 8-10, orange 5-7, jaune 1-4
+function importanceStyle(n: number): {
+  bar: string;
+  text: string;
+  card: string;
+} {
+  if (n >= 8)
+    return {
+      bar: "bg-red-500",
+      text: "text-red-700",
+      card: "border-red-300 bg-red-50",
+    };
+  if (n >= 5)
+    return {
+      bar: "bg-orange-500",
+      text: "text-orange-700",
+      card: "border-orange-200 bg-orange-50",
+    };
+  return {
+    bar: "bg-yellow-400",
+    text: "text-yellow-700",
+    card: "border-yellow-200 bg-yellow-50",
+  };
+}
+
+// Score closing 0-10 : 9-10 bleu clair, 7-8 vert, 5-6 jaune, 3-4 orange, 1-2 rouge
+function scoreStyle(s: number): { bar: string; label: string } {
+  if (s >= 9) return { bar: "bg-sky-400", label: "Excellent" };
+  if (s >= 7) return { bar: "bg-green-500", label: "Bon" };
+  if (s >= 5) return { bar: "bg-yellow-400", label: "Moyen" };
+  if (s >= 3) return { bar: "bg-orange-500", label: "Fragile" };
+  return { bar: "bg-red-500", label: "Critique" };
+}
 
 export function RecommendationCards() {
   const isRecording = useCallStore((s) => s.isRecording);
@@ -88,6 +115,28 @@ export function RecommendationCards() {
         ))}
       </div>
 
+      {recommendations.length > 0 &&
+        (() => {
+          const s = recommendations[0].closingScore;
+          const st = scoreStyle(s);
+          return (
+            <div className="border-b border-slate-100 px-4 py-3">
+              <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-600">
+                <span>Score de closing</span>
+                <span>
+                  {s}/10 · {st.label}
+                </span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${st.bar}`}
+                  style={{ width: `${s * 10}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
+
       <div className="min-h-0 flex-1 space-y-3 overflow-y-scroll p-4">
         {recommendations.length === 0 && (
           <p className="text-sm text-slate-400">
@@ -96,23 +145,37 @@ export function RecommendationCards() {
           </p>
         )}
         <AnimatePresence initial={false}>
-          {recommendations.map((r) => (
-            <motion.div
-              key={r.id}
-              initial={{ opacity: 0, y: -8, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.2 }}
-              className={`rounded-lg border px-4 py-3 ${urgencyStyles[r.urgency]}`}
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-medical-700">
-                {CARES_LABELS[r.step] ?? r.step}
-              </p>
-              <p className="mt-1 text-sm font-medium text-slate-800">
-                {r.message}
-              </p>
-            </motion.div>
-          ))}
+          {recommendations.map((r) => {
+            const imp = importanceStyle(r.importance);
+            return (
+              <motion.div
+                key={r.id}
+                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+                className={`rounded-lg border px-4 py-3 ${imp.card}`}
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-medical-700">
+                    {CARES_LABELS[r.step] ?? r.step}
+                  </p>
+                  <span className={`text-[11px] font-bold ${imp.text}`}>
+                    Importance {r.importance}/10
+                  </span>
+                </div>
+                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/70">
+                  <div
+                    className={`h-full rounded-full ${imp.bar}`}
+                    style={{ width: `${r.importance * 10}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-sm font-medium text-slate-800">
+                  {r.message}
+                </p>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
     </div>

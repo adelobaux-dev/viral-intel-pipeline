@@ -53,8 +53,9 @@ export async function getLiveRecommendation(
     system: `${CABINET_CONTEXT}${modeBlock}${knowledgeBlock}
 
 Analyse la conversation EN COURS. Donne UN seul conseil de closing, très court (1 phrase max), à lire en un coup d'œil.
+Évalue aussi : "importance" = degré d'importance du conseil maintenant (entier 1 à 10), "closing_score" = estimation de la qualité globale du closing jusqu'ici (entier 0 à 10).
 Réponds STRICTEMENT en JSON :
-{"step":"connecter|analyser|rassurer|engager|securiser","message":"<conseil 1 phrase>","urgency":"low|medium|high"}`,
+{"step":"connecter|analyser|rassurer|engager|securiser","message":"<conseil 1 phrase>","importance":<1-10>,"closing_score":<0-10>}`,
     messages: [
       {
         role: "user",
@@ -68,14 +69,21 @@ Réponds STRICTEMENT en JSON :
   const parsed = extractJson(text) as {
     step: CaresStep;
     message: string;
-    urgency: Recommendation["urgency"];
+    importance?: number;
+    closing_score?: number;
+  };
+
+  const clamp = (v: unknown, min: number, max: number, def: number) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : def;
   };
 
   return {
     id: crypto.randomUUID(),
     step: parsed.step,
     message: parsed.message,
-    urgency: parsed.urgency ?? "medium",
+    importance: clamp(parsed.importance, 1, 10, 5),
+    closingScore: clamp(parsed.closing_score, 0, 10, 0),
     createdAt: Date.now(),
   };
 }
