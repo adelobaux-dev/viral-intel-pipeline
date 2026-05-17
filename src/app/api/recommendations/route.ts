@@ -69,15 +69,20 @@ export async function GET(request: Request) {
         if (patientName.length >= 2) {
           try {
             const { createAdminClient } = await import("@/lib/supabase/server");
+            const { looseNameMatch } = await import("@/lib/patientMatch");
             const { data: prior } = await createAdminClient()
               .from("calls")
-              .select("score, ai_feedback, created_at")
-              .ilike("patient_name", patientName)
+              .select("patient_name, score, ai_feedback, created_at")
+              .not("patient_name", "is", null)
               .is("deleted_at", null)
               .order("created_at", { ascending: false })
-              .limit(8);
+              .limit(300);
             const lines2 = (prior ?? [])
               .filter((c) => c.ai_feedback)
+              .filter((c) =>
+                looseNameMatch(patientName, (c.patient_name as string) ?? ""),
+              )
+              .slice(0, 8)
               .map((c) => {
                 const ps = (c.ai_feedback as { patient_summary?: Record<string, string> })
                   .patient_summary;

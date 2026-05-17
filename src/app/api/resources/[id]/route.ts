@@ -15,14 +15,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single<{ role: string }>();
-  if (profile?.role !== "admin") {
+  if (!(user.email ?? "").toLowerCase().includes("delobaux")) {
     return NextResponse.json(
-      { error: "Réservé aux administrateurs" },
+      { error: "Suppression réservée au Dr Delobaux" },
       { status: 403 },
     );
   }

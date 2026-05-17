@@ -7,21 +7,43 @@
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  @apply text-slate-800 antialiased;
+  background: linear-gradient(180deg, #f4f8fc 0%, #eef3f9 100%);
+  background-attachment: fixed;
 }
 
 .card {
-  @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+  @apply rounded-2xl border border-slate-200/70 bg-white;
+  box-shadow:
+    0 1px 2px rgba(16, 42, 67, 0.04),
+    0 8px 24px -12px rgba(16, 42, 67, 0.12);
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-medical-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-medical-700 focus:outline-none focus:ring-2 focus:ring-medical-400 disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-medical-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-medical-700 focus:outline-none focus:ring-2 focus:ring-medical-300 disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-medical-300 hover:bg-medical-50 hover:text-medical-700;
 }
 
 .input {
-  @apply w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-medical-500 focus:ring-2 focus:ring-medical-200;
+  @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-medical-500 focus:ring-2 focus:ring-medical-200;
+}
+
+/* Barres de défilement raffinées */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b9cfe3 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #b9cfe3;
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
 }

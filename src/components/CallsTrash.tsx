@@ -9,10 +9,12 @@ export function CallsTrash({
   calls,
   userById,
   showOwner,
+  canDelete,
 }: {
   calls: CallRecord[];
   userById: Map<string, string>;
   showOwner: boolean;
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -82,6 +84,13 @@ export function CallsTrash({
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {!canDelete && (
+                <span className="text-xs text-slate-400">
+                  Réservé au Dr Delobaux
+                </span>
+              )}
+              {canDelete && (
+              <>
               <button
                 onClick={() => restore(c.id)}
                 disabled={busyId === c.id}
@@ -102,6 +111,8 @@ export function CallsTrash({
               >
                 <Trash2 className="h-4 w-4" />
               </button>
+              </>
+              )}
             </div>
           </div>
         );

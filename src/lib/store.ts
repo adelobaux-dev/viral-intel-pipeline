@@ -28,6 +28,18 @@ interface CallState {
 
 const MAX_RECOMMENDATIONS = 40;
 
+const MODE_KEY = "cares.lastMode";
+export function loadMode(): ConsultationMode {
+  if (typeof window === "undefined") return "closeuse";
+  const v = window.localStorage.getItem(MODE_KEY) as ConsultationMode | null;
+  return v === "secretaire" ||
+    v === "chirurgien" ||
+    v === "closeuse" ||
+    v === "ide"
+    ? v
+    : "closeuse";
+}
+
 export const useCallStore = create<CallState>((set) => ({
   isRecording: false,
   patientName: "",
@@ -37,7 +49,11 @@ export const useCallStore = create<CallState>((set) => ({
   lines: [],
   recommendations: [],
 
-  setMode: (mode) => set({ mode }),
+  setMode: (mode) => {
+    if (typeof window !== "undefined")
+      window.localStorage.setItem(MODE_KEY, mode);
+    set({ mode });
+  },
 
   setPatientName: (name) => set({ patientName: name }),
 

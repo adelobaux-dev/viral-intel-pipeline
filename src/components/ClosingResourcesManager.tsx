@@ -19,7 +19,11 @@ interface Resource {
   created_at: string;
 }
 
-export function ClosingResourcesManager() {
+export function ClosingResourcesManager({
+  canDelete,
+}: {
+  canDelete: boolean;
+}) {
   const [resources, setResources] = useState<Resource[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -308,13 +312,15 @@ export function ClosingResourcesManager() {
                 {r.content}
               </p>
             </div>
-            <button
-              onClick={() => remove(r.id)}
-              title="Supprimer"
-              className="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {canDelete && (
+              <button
+                onClick={() => remove(r.id)}
+                title="Supprimer"
+                className="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
         ))}
       </div>

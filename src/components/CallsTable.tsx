@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronRight,
   Download,
+  FileText,
   Loader2,
   Trash2,
 } from "lucide-react";
@@ -16,10 +17,12 @@ export function CallsTable({
   calls,
   showOwner,
   userById,
+  canDelete,
 }: {
   calls: CallRecord[];
   showOwner: boolean;
   userById: Map<string, string>;
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -87,6 +90,44 @@ export function CallsTable({
     URL.revokeObjectURL(url);
   }
 
+  function downloadFeedback(c: CallRecord, label: string) {
+    const fb = c.ai_feedback;
+    if (!fb) {
+      setError("Pas de feedback disponible pour cette conversation.");
+      return;
+    }
+    const date = new Date(c.created_at).toLocaleString("fr-FR");
+    const txt = `FEEDBACK — ${label}
+Date : ${date}
+Score global : ${fb.score}/10
+${"-".repeat(40)}
+
+Détail C.A.R.E.S. :
+${Object.entries(fb.cares_breakdown)
+  .map(([k, v]) => `  - ${CARES_LABELS[k as keyof typeof CARES_LABELS]} : ${v}/10`)
+  .join("\n")}
+
+Points forts :
+${fb.strengths.map((s) => `  • ${s}`).join("\n")}
+
+Axes d'amélioration :
+${fb.improvements.map((s) => `  • ${s}`).join("\n")}
+
+Résumé patient :
+  Motif        : ${fb.patient_summary.motif}
+  Taille/Poids : ${fb.patient_summary.taille_poids}
+  Budget       : ${fb.patient_summary.budget}
+  Notes        : ${fb.patient_summary.notes}
+`;
+    const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `feedback-${label.replace(/[^a-z0-9]/gi, "_")}-${c.id.slice(0, 8)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (calls.length === 0) {
     return (
       <div className="card p-6 text-center text-sm text-slate-400">
@@ -97,37 +138,39 @@ export function CallsTable({
 
   return (
     <div className="card divide-y divide-slate-100">
-      <div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-2.5">
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={toggleAll}
-            className="h-4 w-4 rounded border-slate-300"
-          />
-          Tout cocher
-          {selected.size > 0 && (
-            <span className="text-slate-400">({selected.size})</span>
-          )}
-        </label>
-        <button
-          onClick={() =>
-            deleteIds(
-              Array.from(selected),
-              `${selected.size} conversation(s) sélectionnée(s)`,
-            )
-          }
-          disabled={selected.size === 0 || busy}
-          className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {busy ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <Trash2 className="h-3.5 w-3.5" />
-          )}
-          Supprimer la sélection
-        </button>
-      </div>
+      {canDelete && (
+        <div className="flex items-center justify-between gap-3 bg-slate-50 px-4 py-2.5">
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleAll}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            Tout cocher
+            {selected.size > 0 && (
+              <span className="text-slate-400">({selected.size})</span>
+            )}
+          </label>
+          <button
+            onClick={() =>
+              deleteIds(
+                Array.from(selected),
+                `${selected.size} conversation(s) sélectionnée(s)`,
+              )
+            }
+            disabled={selected.size === 0 || busy}
+            className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {busy ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" />
+            )}
+            Supprimer la sélection
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 px-4 py-2 text-sm text-red-700">{error}</div>
@@ -140,12 +183,14 @@ export function CallsTable({
           <div key={c.id}>
             <div className="flex items-center justify-between px-4 py-3 hover:bg-slate-50">
               <div className="flex flex-1 items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={selected.has(c.id)}
-                  onChange={() => toggleOne(c.id)}
-                  className="h-4 w-4 rounded border-slate-300"
-                />
+                {canDelete && (
+                  <input
+                    type="checkbox"
+                    checked={selected.has(c.id)}
+                    onChange={() => toggleOne(c.id)}
+                    className="h-4 w-4 rounded border-slate-300"
+                  />
+                )}
                 <button
                   onClick={() => setOpenId(open ? null : c.id)}
                   className="flex flex-1 items-center gap-3 text-left"
@@ -188,13 +233,25 @@ export function CallsTable({
                   <Download className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => deleteIds([c.id], `la conversation "${label}"`)}
-                  disabled={busy}
-                  title="Supprimer cette conversation"
-                  className="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                  onClick={() => downloadFeedback(c, label)}
+                  disabled={!c.ai_feedback}
+                  title="Télécharger le feedback"
+                  className="rounded-md p-1.5 text-slate-400 transition hover:bg-medical-50 hover:text-medical-600 disabled:opacity-30"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                 </button>
+                {canDelete && (
+                  <button
+                    onClick={() =>
+                      deleteIds([c.id], `la conversation "${label}"`)
+                    }
+                    disabled={busy}
+                    title="Supprimer cette conversation"
+                    className="rounded-md p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 

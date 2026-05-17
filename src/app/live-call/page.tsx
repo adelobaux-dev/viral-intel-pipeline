@@ -7,6 +7,7 @@ import { LiveTranscription } from "@/components/LiveTranscription";
 import { RecommendationCards } from "@/components/RecommendationCards";
 import { CallFeedbackModal } from "@/components/CallFeedbackModal";
 import { PatientDossier } from "@/components/PatientDossier";
+import { PatientNameInput } from "@/components/PatientNameInput";
 import { SignOutButton } from "@/components/SignOutButton";
 import { useCallStore } from "@/lib/store";
 import type { AiFeedback } from "@/lib/types";
@@ -112,11 +113,9 @@ export default function LiveCallPage() {
         <div className="flex items-center gap-3">
           {!isRecording ? (
             <>
-              <input
-                className="input w-44"
-                placeholder="Nom du patient"
+              <PatientNameInput
                 value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
+                onChange={setPatientName}
                 disabled={busy}
               />
               <input

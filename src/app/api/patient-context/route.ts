@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { looseNameMatch } from "@/lib/patientMatch";
 import type { AiFeedback } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,12 +28,16 @@ export async function GET(request: Request) {
   const { data } = await createAdminClient()
     .from("calls")
     .select("patient_name, score, ai_feedback, created_at, user_id")
-    .ilike("patient_name", name)
+    .not("patient_name", "is", null)
     .is("deleted_at", null)
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(400);
 
-  const entries = (data ?? []).filter((c) => c.ai_feedback);
+  // Correspondance tolérante aux fautes de frappe (nom/prénom).
+  const entries = (data ?? [])
+    .filter((c) => c.ai_feedback)
+    .filter((c) => looseNameMatch(name, (c.patient_name as string) ?? ""))
+    .slice(0, 10);
   if (entries.length === 0) {
     return NextResponse.json({ found: false, summary: "", entries: [] });
   }

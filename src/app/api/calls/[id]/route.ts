@@ -10,15 +10,16 @@ async function authorize(callId: string) {
   } = await supabase.auth.getUser();
   if (!user) return { error: "Non authentifié", status: 401 as const };
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single<{ role: string }>();
-  const isAdmin = profile?.role === "admin";
+  // Seul le Dr Delobaux peut supprimer / restaurer.
+  if (!(user.email ?? "").toLowerCase().includes("delobaux")) {
+    return {
+      error: "Action réservée au Dr Delobaux",
+      status: 403 as const,
+    };
+  }
 
   const admin = createAdminClient();
-  return { user, isAdmin, admin, callId };
+  return { user, isAdmin: true, admin, callId };
 }
 
 // Suppression douce (→ corbeille), ou définitive si ?purge=1

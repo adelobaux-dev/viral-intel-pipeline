@@ -164,7 +164,7 @@ export default async function DashboardPage() {
 
         {isAdmin && (
           <section>
-            <ClosingResourcesManager />
+            <ClosingResourcesManager canDelete={isDelobaux} />
           </section>
         )}
 
@@ -196,6 +196,7 @@ export default async function DashboardPage() {
             calls={calls ?? []}
             showOwner={isAdmin}
             userById={userById}
+            canDelete={isDelobaux}
           />
         </section>
 
@@ -210,6 +211,7 @@ export default async function DashboardPage() {
             calls={trash ?? []}
             showOwner={isAdmin}
             userById={userById}
+            canDelete={isDelobaux}
           />
         </section>
       </div>

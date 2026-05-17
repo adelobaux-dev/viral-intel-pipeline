@@ -1,13 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, Loader2, Sparkles, RefreshCw, X } from "lucide-react";
+
+const DONE_KEY = "appreco.done";
+const HIDE_KEY = "appreco.hidden";
+function loadSet(k: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    return new Set(JSON.parse(window.localStorage.getItem(k) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+function saveSet(k: string, s: Set<string>) {
+  window.localStorage.setItem(k, JSON.stringify(Array.from(s)));
+}
 
 export function AppRecommendations() {
   const [content, setContent] = useState<string | null>(null);
   const [date, setDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<Set<string>>(new Set());
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setDone(loadSet(DONE_KEY));
+    setHidden(loadSet(HIDE_KEY));
+  }, []);
+
+  const items = useMemo(
+    () =>
+      (content ?? "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean),
+    [content],
+  );
+
+  function toggleDone(t: string) {
+    setDone((prev) => {
+      const n = new Set(prev);
+      n.has(t) ? n.delete(t) : n.add(t);
+      saveSet(DONE_KEY, n);
+      return n;
+    });
+  }
+  function hide(t: string) {
+    setHidden((prev) => {
+      const n = new Set(prev).add(t);
+      saveSet(HIDE_KEY, n);
+      return n;
+    });
+  }
+  const isItem = (l: string) => /^([-•*]|\d+[.)]|\[)/.test(l);
 
   async function load(force = false) {
     setLoading(true);
@@ -81,8 +128,47 @@ export function AppRecommendations() {
       )}
 
       {content && (
-        <div className="max-h-96 overflow-y-scroll whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-          {content}
+        <div className="max-h-96 space-y-1 overflow-y-scroll rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
+          {items
+            .filter((l) => !hidden.has(l))
+            .map((l, i) =>
+              isItem(l) ? (
+                <div
+                  key={i}
+                  className="group flex items-start gap-2 rounded-md px-2 py-1 hover:bg-white"
+                >
+                  <button
+                    onClick={() => toggleDone(l)}
+                    title="Marquer comme fait"
+                    className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                      done.has(l)
+                        ? "border-emerald-500 bg-emerald-500 text-white"
+                        : "border-slate-300"
+                    }`}
+                  >
+                    {done.has(l) && <Check className="h-3 w-3" />}
+                  </button>
+                  <span
+                    className={
+                      done.has(l) ? "flex-1 text-slate-400 line-through" : "flex-1"
+                    }
+                  >
+                    {l}
+                  </span>
+                  <button
+                    onClick={() => hide(l)}
+                    title="Supprimer cette recommandation"
+                    className="shrink-0 text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-red-600"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <p key={i} className="px-2 pt-2 font-semibold text-slate-800">
+                  {l}
+                </p>
+              ),
+            )}
         </div>
       )}
     </div>

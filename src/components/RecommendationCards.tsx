@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Lightbulb } from "lucide-react";
-import { useCallStore } from "@/lib/store";
+import { useCallStore, loadMode } from "@/lib/store";
 import { CARES_LABELS, CONSULTATION_MODES } from "@/lib/cares";
 
 const POLL_MS = 10000;
@@ -49,6 +49,11 @@ export function RecommendationCards() {
   const mode = useCallStore((s) => s.mode);
   const setMode = useCallStore((s) => s.setMode);
   const esRef = useRef<EventSource | null>(null);
+
+  // Restaure le profil (mode) de la dernière connexion de l'utilisateur.
+  useEffect(() => {
+    setMode(loadMode());
+  }, [setMode]);
 
   useEffect(() => {
     if (!isRecording) return;
