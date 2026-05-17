@@ -59,6 +59,9 @@ tmp/
 temp/
 *.tmp
 
+# Metriques generees (sortie de social_metrics.py)
+social_metrics.json
+
 # OS
 .DS_Store
 Thumbs.db

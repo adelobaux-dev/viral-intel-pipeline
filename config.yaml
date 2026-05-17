@@ -17,3 +17,63 @@ drive:
 
 email:
   subject: "Weekly Strategic Intelligence - Viral Intel"
+
+# --- Couche data du dashboard CEO ---
+
+# Compte Instagram Pro (Business/Creator) lie a une Page Facebook.
+# Les identifiants/tokens sont dans .env (voir .env.example).
+instagram:
+  enabled: true
+  top_reels_count: 5          # 3 a 5 meilleurs reels
+  windows:                    # fenetres d'agregation (en jours)
+    daily: 1
+    weekly: 7
+    monthly: 30
+
+# Chaine YouTube a suivre (la tienne, pas les chaines analysees plus haut).
+youtube_channel:
+  enabled: true
+  channel_id: ""              # renseigne channel_id OU handle
+  handle: ""                  # ex: "@DrAlexisDelobaux"
+
+# Source de l'app de closing (https://viral-intel-pipeline.vercel.app/dashboard).
+# URL d'un CSV/JSON publie OU endpoint API. Laisser vide tant qu'indisponible.
+closing_app:
+  enabled: false
+  data_url: ""
+  format: "csv"               # "csv" ou "json"
+
+# Publication des metriques vers Google Sheets (modele des 6 sheets du dashboard).
+sheets:
+  enabled: false              # true quand le service account est configure
+  spreadsheet_id: ""
+  worksheet: "social_metrics"
+
+# Identification par email et dashboards par role.
+# Le CEO (admin) voit tout + peut consulter chaque role. Les autres ne voient
+# QUE leur perimetre. L'auth reelle (login email) est faite cote dashboard ;
+# cette API mappe email -> role -> KPIs filtres.
+roles:
+  admin_emails:
+    - "alexis@cabinet-delobaux.fr"   # <-- remplace par ton email admin reel
+  members:
+    secretaire_paris:
+      label: "Secretaire Paris"
+      emails: []
+      kpis: ["messages_received", "instagram_replies", "appointments_paris", "response_time"]
+    secretaire_agen:
+      label: "Secretaire Agen"
+      emails: []
+      kpis: ["messages_received", "instagram_replies", "appointments_agen", "response_time"]
+    closer_paris:
+      label: "Closer Paris"
+      emails: []
+      kpis: ["leads_paris", "calls_done", "closing_rate", "revenue_paris"]
+    infirmiere_paris:
+      label: "Infirmiere Paris"
+      emails: []
+      kpis: ["patients_paris", "procedures_done", "satisfaction", "no_show_rate"]
+    manager_agen:
+      label: "Manager Agen"
+      emails: []
+      kpis: ["team_activity_agen", "leads_agen", "closing_rate_agen", "revenue_agen"]
