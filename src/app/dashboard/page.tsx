@@ -12,6 +12,7 @@ import { ErrorLogPanel } from "@/components/ErrorLogPanel";
 import { TeamReportPanel } from "@/components/TeamReportPanel";
 import { CallsTrash } from "@/components/CallsTrash";
 import { ResetRankingsButton } from "@/components/ResetRankingsButton";
+import { APP_VERSION } from "@/lib/version";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -214,6 +215,10 @@ export default async function DashboardPage() {
             canDelete={isDelobaux}
           />
         </section>
+
+        <p className="pt-2 text-center text-xs text-slate-400">
+          Version déployée : {APP_VERSION}
+        </p>
       </div>
     </main>
   );

@@ -54,7 +54,10 @@ export function AppRecommendations() {
       return n;
     });
   }
-  const isItem = (l: string) => /^([-•*]|\d+[.)]|\[)/.test(l);
+  // Une ligne est un "titre de section" seulement si courte et finissant
+  // par ":" — sinon c'est une recommandation (avec case à cocher + suppr.).
+  const isItem = (l: string) =>
+    !(l.length < 60 && /[:：]\s*$/.test(l));
 
   async function load(force = false) {
     setLoading(true);
