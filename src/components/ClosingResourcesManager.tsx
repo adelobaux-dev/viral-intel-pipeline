@@ -283,23 +283,25 @@ export function ClosingResourcesManager() {
         </button>
       </form>
 
-      <div className="divide-y divide-slate-100 border-t border-slate-100">
+      <div className="max-h-64 divide-y divide-slate-100 overflow-y-scroll rounded-lg border border-slate-200 bg-white">
         {loading && (
-          <p className="py-3 text-sm text-slate-400">Chargement…</p>
+          <p className="px-3 py-3 text-sm text-slate-400">Chargement…</p>
         )}
         {!loading && resources.length === 0 && (
-          <p className="py-3 text-sm text-slate-400">
+          <p className="px-3 py-3 text-sm text-slate-400">
             Aucune ressource pour l&apos;instant.
           </p>
         )}
         {resources.map((r) => (
           <div
             key={r.id}
-            className="flex items-start justify-between gap-3 py-3"
+            className="flex items-start justify-between gap-3 px-3 py-2"
           >
             <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-800">{r.title}</p>
-              <p className="line-clamp-2 text-xs text-slate-500">
+              <p className="truncate text-sm font-medium text-slate-800">
+                {r.title}
+              </p>
+              <p className="line-clamp-1 text-xs text-slate-500">
                 {r.content}
               </p>
             </div>
