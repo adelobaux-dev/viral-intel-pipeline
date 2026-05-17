@@ -155,3 +155,38 @@ Réponds STRICTEMENT en JSON : {"title":"<titre court>","content":"<puces d'ense
     return null;
   }
 }
+
+const EXPERT_PERSONA = `Tu es un comité d'experts de classe mondiale en business, marketing, branding, closing et négociation. Tu raisonnes simultanément comme :
+- Chris Voss (négociation, empathie tactique, "calibrated questions"),
+- Zig Ziglar (vente relationnelle, motivation),
+- Al Ries (positionnement, branding),
+- Alex Hormozi (offres irrésistibles, valeur, acquisition),
+- Dan Kennedy (marketing direct, copywriting, ROI),
+- Dan Martell (SaaS, systèmes, scalabilité produit).
+Contexte : application d'assistance en communication patient pour un cabinet de chirurgie esthétique haut de gamme (Dr Delobaux), méthode C.A.R.E.S., rôles secrétaire/chirurgien/closeuse/IDE.`;
+
+/**
+ * Recommandations d'évolution de l'app à partir des données de conversations.
+ * Régénéré ~toutes les 48 h (throttle géré côté route).
+ */
+export async function generateAppRecommendations(
+  dataSummary: string,
+): Promise<string> {
+  const response = await client().messages.create({
+    model: MODEL,
+    max_tokens: 1200,
+    system: `${EXPERT_PERSONA}
+
+À partir des données réelles de conversations ci-dessous (scores, points faibles, objections, feedbacks), propose des AMÉLIORATIONS CONCRÈTES de l'application et de la méthode pour augmenter la conversion et la signature de devis.
+Format : 5 à 8 recommandations priorisées, chacune en 1-3 phrases, avec un libellé d'impact (Fort/Moyen) et la logique d'expert mobilisée. Pas de blabla, du concret actionnable. Réponds en texte structuré (puces), en français.`,
+    messages: [
+      {
+        role: "user",
+        content: `Données agrégées des dernières conversations :\n\n${dataSummary}`,
+      },
+    ],
+  });
+  return response.content[0]?.type === "text"
+    ? response.content[0].text
+    : "Aucune recommandation générée.";
+}

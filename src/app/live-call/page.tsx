@@ -6,6 +6,7 @@ import { ArrowLeft, PhoneCall, PhoneOff, Loader2 } from "lucide-react";
 import { LiveTranscription } from "@/components/LiveTranscription";
 import { RecommendationCards } from "@/components/RecommendationCards";
 import { CallFeedbackModal } from "@/components/CallFeedbackModal";
+import { SignOutButton } from "@/components/SignOutButton";
 import { useCallStore } from "@/lib/store";
 import type { AiFeedback } from "@/lib/types";
 
@@ -151,6 +152,7 @@ export default function LiveCallPage() {
               Terminer l&apos;appel
             </button>
           )}
+          <SignOutButton />
         </div>
       </header>
 
