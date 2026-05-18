@@ -34,7 +34,7 @@ instagram:
 youtube_channel:
   enabled: true
   channel_id: ""              # renseigne channel_id OU handle
-  handle: ""                  # ex: "@DrAlexisDelobaux"
+  handle: "@dralexisdelobaux"
 
 # Source de l'app de closing (https://viral-intel-pipeline.vercel.app/dashboard).
 # URL d'un CSV/JSON publie OU endpoint API. Laisser vide tant qu'indisponible.
@@ -55,15 +55,15 @@ sheets:
 # cette API mappe email -> role -> KPIs filtres.
 roles:
   admin_emails:
-    - "alexis@cabinet-delobaux.fr"   # <-- remplace par ton email admin reel
+    - "adelobaux@gmail.com"
   members:
     secretaire_paris:
       label: "Secretaire Paris"
-      emails: []
+      emails: ["secretariatdrdelobaux@gmail.com"]
       kpis: ["messages_received", "instagram_replies", "appointments_paris", "response_time"]
     secretaire_agen:
       label: "Secretaire Agen"
-      emails: []
+      emails: ["chirurgieesthetiqueagen@gmail.com"]
       kpis: ["messages_received", "instagram_replies", "appointments_agen", "response_time"]
     closer_paris:
       label: "Closer Paris"
@@ -71,9 +71,9 @@ roles:
       kpis: ["leads_paris", "calls_done", "closing_rate", "revenue_paris"]
     infirmiere_paris:
       label: "Infirmiere Paris"
-      emails: []
+      emails: ["florence.agasseau@gmail.com"]
       kpis: ["patients_paris", "procedures_done", "satisfaction", "no_show_rate"]
     manager_agen:
       label: "Manager Agen"
-      emails: []
+      emails: ["managercea.47@gmail.com"]
       kpis: ["team_activity_agen", "leads_agen", "closing_rate_agen", "revenue_agen"]
