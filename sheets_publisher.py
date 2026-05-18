@@ -78,3 +78,48 @@ def publish(payload, sheets_cfg):
         body={"values": [_row(payload)]},
     ).execute()
     print(f"Ligne ajoutee au Sheet {spreadsheet_id} ({worksheet}).")
+
+    _write_snapshot(sheet, spreadsheet_id, payload)
+
+
+SNAP_TAB = "_snapshot"
+
+
+def _ensure_tab(sheet, spreadsheet_id, title):
+    meta = sheet.get(spreadsheetId=spreadsheet_id).execute()
+    titles = [s["properties"]["title"] for s in meta.get("sheets", [])]
+    if title in titles:
+        return
+    sheet.batchUpdate(
+        spreadsheetId=spreadsheet_id,
+        body={"requests": [{"addSheet": {"properties": {"title": title}}}]},
+    ).execute()
+
+
+def _write_snapshot(sheet, spreadsheet_id, payload):
+    """Stocke le payload complet (JSON) en cellule A1 d'un onglet dedie.
+
+    Permet a l'API serverless de servir les vues par role sans dependre
+    d'un fichier local.
+    """
+    _ensure_tab(sheet, spreadsheet_id, SNAP_TAB)
+    blob = json.dumps(payload, ensure_ascii=False)
+    sheet.values().update(
+        spreadsheetId=spreadsheet_id,
+        range=f"{SNAP_TAB}!A1",
+        valueInputOption="RAW",
+        body={"values": [[blob]]},
+    ).execute()
+    print(f"Snapshot JSON ecrit dans l'onglet {SNAP_TAB}.")
+
+
+def read_snapshot(spreadsheet_id):
+    """Relit le dernier snapshot JSON (utilise par l'API serverless)."""
+    service = build("sheets", "v4", credentials=_credentials())
+    resp = service.spreadsheets().values().get(
+        spreadsheetId=spreadsheet_id, range=f"{SNAP_TAB}!A1"
+    ).execute()
+    values = resp.get("values")
+    if not values or not values[0]:
+        return None
+    return json.loads(values[0][0])

@@ -16,12 +16,15 @@ Reponses :
 
 import json
 import os
+import sys
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
 import yaml
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 CONFIG_PATH = os.path.join(ROOT, "config.yaml")
 DATA_PATH = os.path.join(ROOT, "social_metrics.json")
 
@@ -29,6 +32,25 @@ DATA_PATH = os.path.join(ROOT, "social_metrics.json")
 def _load_config():
     with open(CONFIG_PATH, "r") as f:
         return yaml.safe_load(f)
+
+
+def _load_data(cfg):
+    """Source des metriques : fichier local sinon snapshot Google Sheets."""
+    try:
+        with open(DATA_PATH, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        pass
+    sheets_cfg = cfg.get("sheets", {})
+    if sheets_cfg.get("enabled") and sheets_cfg.get("spreadsheet_id"):
+        try:
+            import sheets_publisher
+
+            return sheets_publisher.read_snapshot(
+                sheets_cfg["spreadsheet_id"])
+        except Exception:
+            return None
+    return None
 
 
 def _resolve_role(email, cfg):
@@ -73,13 +95,12 @@ class handler(BaseHTTPRequestHandler):
                     403, {"error": "consultation d'un autre role reservee a l'admin"})
             role = as_role
 
-        try:
-            with open(DATA_PATH, "r") as f:
-                data = json.load(f)
-        except FileNotFoundError:
+        data = _load_data(cfg)
+        if data is None:
             return self._send(503, {
                 "error": "metriques non generees",
-                "hint": "lancer python social_metrics.py",
+                "hint": "lancer le pipeline (python social_metrics.py) "
+                        "ou configurer sheets.spreadsheet_id",
             })
 
         view = data.get("views_by_role", {}).get(role)
