@@ -164,7 +164,13 @@ def collect_all():
             handle=yt_cfg.get("handle") or None,
         )
 
-    payload["closing"] = _fetch_closing(cfg)
+    try:
+        import closing_sources
+
+        payload["closing"] = closing_sources.collect()
+    except Exception as exc:
+        payload["closing"] = {"ok": False, "error": str(exc)}
+
     payload["kpis"] = _build_kpis(payload, cfg)
     return payload
 
@@ -200,23 +206,50 @@ def _build_kpis(payload, cfg):
         kpis["youtube_subscribers"] = _kpi(
             "youtube_subscribers", yt.get("subscribers", 0), targets)
 
-    # KPIs metier issus des sheets de closing (si dispo).
+    # KPIs metier issus des sheets parses (closing / acquisition / leads).
+    # NOTE: source_3/source_4 sont GLOBALES (pas de split Paris/Agen) :
+    # les variantes _paris portent la valeur globale, _agen restent vides
+    # tant que la regle de ville n'est pas fournie.
     closing = payload.get("closing") or {}
-    col_map = (cfg.get("closing_app", {}) or {}).get("column_map") or {}
-    if closing.get("ok") and isinstance(closing.get("data"), list):
-        agg = {}
-        for row in closing["data"]:
-            for raw_k, v in row.items():
-                k = col_map.get(raw_k, raw_k)  # colonne reelle -> KPI interne
-                if k not in targets:
-                    continue
-                try:
-                    agg[k] = agg.get(k, 0) + float(
-                        str(v).replace(" ", "").replace(",", "."))
-                except (TypeError, ValueError):
-                    continue
-        for k, v in agg.items():
-            kpis[k] = _kpi(k, v, targets)
+    if closing.get("ok"):
+        mois = (closing.get("closing") or {}).get("monthly") or {}
+        acq = closing.get("acquisition") or {}
+        leads = closing.get("leads") or {}
+
+        derived = {}
+        if mois.get("closing_rate") is not None:
+            derived["closing_rate"] = mois["closing_rate"]
+        if mois.get("ca_signe") is not None:
+            derived["revenue_paris"] = mois["ca_signe"]
+        if acq:
+            derived["calls_done"] = acq.get("appels_semaine")
+            c_ig = acq.get("contacts_ig") or 0
+            c_si = acq.get("contacts_site") or 0
+            derived["leads_paris"] = c_ig + c_si
+            r_ig = acq.get("rdv_pris_ig") or 0
+            r_si = acq.get("rdv_pris_site") or 0
+            derived["appointments_paris"] = r_ig + r_si
+            if acq.get("perf_appels") is not None:
+                derived["team_activity_agen"] = acq["perf_appels"]
+        if leads.get("monthly") is not None:
+            derived["messages_received"] = leads["monthly"]
+
+        for k, v in derived.items():
+            if v is not None and k in targets:
+                kpis[k] = _kpi(k, v, targets)
+
+        payload["business"] = {
+            "data_period": {
+                "closing_month": mois.get("period"),
+                "closing_week": (closing.get("closing") or {}).get(
+                    "weekly", {}).get("period") if closing.get(
+                    "closing") else None,
+                "acquisition_month": acq.get("period"),
+            },
+            "scope": "global (Paris/Agen non separes)",
+            "raw": {"closing": closing.get("closing"),
+                    "acquisition": acq, "leads": leads},
+        }
 
     return kpis
 

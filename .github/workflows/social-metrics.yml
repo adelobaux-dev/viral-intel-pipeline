@@ -1,11 +1,14 @@
 name: Social Metrics Refresh
 
-# Rafraichit les metriques (Instagram + YouTube + closing) et les publie
-# dans Google Sheets, d'ou l'API serverless et le dashboard les lisent.
+# Rafraichit les metriques (Instagram + YouTube + closing) et commit
+# social_metrics.json, lu par l'API serverless /api/social.
 on:
   schedule:
     - cron: "0 5 * * *"   # tous les jours 05:00 UTC
   workflow_dispatch: {}
+
+permissions:
+  contents: write
 
 jobs:
   refresh:
@@ -27,3 +30,11 @@ jobs:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: python social_metrics.py
+
+      - name: Commit refreshed metrics
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social_metrics.json
+          git diff --staged --quiet || git commit -m "chore: refresh social metrics [skip ci]"
+          git push

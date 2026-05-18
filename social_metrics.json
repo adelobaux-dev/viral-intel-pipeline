@@ -1,0 +1,362 @@
+{
+  "collected_at": "2026-05-18T06:38:05.647951+00:00",
+  "instagram": {
+    "source": "instagram",
+    "ok": false,
+    "error": "app Meta a valider"
+  },
+  "youtube": {
+    "source": "youtube_channel",
+    "ok": false,
+    "error": "a configurer (cle API + handle)"
+  },
+  "closing": {
+    "ok": true,
+    "errors": {},
+    "closing": {
+      "monthly": {
+        "period": "Décembre",
+        "devis_proposes": 442184.0,
+        "devis_closes": 129402.0,
+        "closing_rate": 29.26,
+        "ca_signe": 343113.0,
+        "ca_en_attente": 323174.0,
+        "relances": 48.0
+      },
+      "weekly": {
+        "period": "Semaine 19",
+        "closing_rate": null,
+        "ca_signe": 41490.0,
+        "objectif_bas": 30000.0,
+        "objectif_moyen": 40000.0,
+        "objectif_haut": 50000.0
+      }
+    },
+    "acquisition": {
+      "period": "DECEMBRE",
+      "contacts_ig": 62.0,
+      "rdv_pris_ig": 9.0,
+      "perf_ig": 16.78,
+      "contacts_site": 72.0,
+      "rdv_pris_site": 31.0,
+      "perf_site": 43.35,
+      "appels_semaine": 24.0,
+      "rdv_pris_semaine": 24.0,
+      "perf_appels": 100.0,
+      "rdv_cotes": 10.0,
+      "avis_demandes": 6.0,
+      "avis_recueillis": 0.0,
+      "followers_dm": 435.0
+    },
+    "leads": {
+      "total": 388,
+      "daily": 2,
+      "weekly": 31,
+      "monthly": 158
+    }
+  },
+  "business": {
+    "data_period": {
+      "closing_month": "Décembre",
+      "closing_week": "Semaine 19",
+      "acquisition_month": "DECEMBRE"
+    },
+    "scope": "global (Paris/Agen non separes)",
+    "raw": {
+      "closing": {
+        "monthly": {
+          "period": "Décembre",
+          "devis_proposes": 442184.0,
+          "devis_closes": 129402.0,
+          "closing_rate": 29.26,
+          "ca_signe": 343113.0,
+          "ca_en_attente": 323174.0,
+          "relances": 48.0
+        },
+        "weekly": {
+          "period": "Semaine 19",
+          "closing_rate": null,
+          "ca_signe": 41490.0,
+          "objectif_bas": 30000.0,
+          "objectif_moyen": 40000.0,
+          "objectif_haut": 50000.0
+        }
+      },
+      "acquisition": {
+        "period": "DECEMBRE",
+        "contacts_ig": 62.0,
+        "rdv_pris_ig": 9.0,
+        "perf_ig": 16.78,
+        "contacts_site": 72.0,
+        "rdv_pris_site": 31.0,
+        "perf_site": 43.35,
+        "appels_semaine": 24.0,
+        "rdv_pris_semaine": 24.0,
+        "perf_appels": 100.0,
+        "rdv_cotes": 10.0,
+        "avis_demandes": 6.0,
+        "avis_recueillis": 0.0,
+        "followers_dm": 435.0
+      },
+      "leads": {
+        "total": 388,
+        "daily": 2,
+        "weekly": 31,
+        "monthly": 158
+      }
+    }
+  },
+  "kpis": {
+    "closing_rate": {
+      "name": "closing_rate",
+      "value": 29.26,
+      "target": 25,
+      "color": "bleu",
+      "ratio": 1.17
+    },
+    "revenue_paris": {
+      "name": "revenue_paris",
+      "value": 343113.0,
+      "target": 30000,
+      "color": "bleu",
+      "ratio": 11.44
+    },
+    "calls_done": {
+      "name": "calls_done",
+      "value": 24.0,
+      "target": 60,
+      "color": "rouge",
+      "ratio": 0.4
+    },
+    "leads_paris": {
+      "name": "leads_paris",
+      "value": 134.0,
+      "target": 50,
+      "color": "bleu",
+      "ratio": 2.68
+    },
+    "appointments_paris": {
+      "name": "appointments_paris",
+      "value": 40.0,
+      "target": 40,
+      "color": "vert",
+      "ratio": 1.0
+    },
+    "team_activity_agen": {
+      "name": "team_activity_agen",
+      "value": 100.0,
+      "target": 80,
+      "color": "bleu",
+      "ratio": 1.25
+    },
+    "messages_received": {
+      "name": "messages_received",
+      "value": 158,
+      "target": 100,
+      "color": "bleu",
+      "ratio": 1.58
+    }
+  },
+  "views_by_role": {
+    "ceo": {
+      "role": "ceo",
+      "label": "CEO",
+      "is_admin": true,
+      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "kpis": {
+        "closing_rate": {
+          "name": "closing_rate",
+          "value": 29.26,
+          "target": 25,
+          "color": "bleu",
+          "ratio": 1.17
+        },
+        "revenue_paris": {
+          "name": "revenue_paris",
+          "value": 343113.0,
+          "target": 30000,
+          "color": "bleu",
+          "ratio": 11.44
+        },
+        "calls_done": {
+          "name": "calls_done",
+          "value": 24.0,
+          "target": 60,
+          "color": "rouge",
+          "ratio": 0.4
+        },
+        "leads_paris": {
+          "name": "leads_paris",
+          "value": 134.0,
+          "target": 50,
+          "color": "bleu",
+          "ratio": 2.68
+        },
+        "appointments_paris": {
+          "name": "appointments_paris",
+          "value": 40.0,
+          "target": 40,
+          "color": "vert",
+          "ratio": 1.0
+        },
+        "team_activity_agen": {
+          "name": "team_activity_agen",
+          "value": 100.0,
+          "target": 80,
+          "color": "bleu",
+          "ratio": 1.25
+        },
+        "messages_received": {
+          "name": "messages_received",
+          "value": 158,
+          "target": 100,
+          "color": "bleu",
+          "ratio": 1.58
+        }
+      },
+      "recommendations": [
+        {
+          "kpi": "calls_done",
+          "severity": "urgent",
+          "color": "rouge",
+          "value": 24.0,
+          "target": 60,
+          "action": "[A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour."
+        }
+      ],
+      "urgent_kpis": [
+        {
+          "kpi": "calls_done",
+          "severity": "urgent",
+          "color": "rouge",
+          "value": 24.0,
+          "target": 60,
+          "action": "[A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour."
+        }
+      ]
+    },
+    "secretaire_paris": {
+      "role": "secretaire_paris",
+      "label": "Secretaire Paris",
+      "is_admin": false,
+      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "kpis": {
+        "appointments_paris": {
+          "name": "appointments_paris",
+          "value": 40.0,
+          "target": 40,
+          "color": "vert",
+          "ratio": 1.0
+        },
+        "messages_received": {
+          "name": "messages_received",
+          "value": 158,
+          "target": 100,
+          "color": "bleu",
+          "ratio": 1.58
+        }
+      },
+      "recommendations": [],
+      "urgent_kpis": []
+    },
+    "secretaire_agen": {
+      "role": "secretaire_agen",
+      "label": "Secretaire Agen",
+      "is_admin": false,
+      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "kpis": {
+        "messages_received": {
+          "name": "messages_received",
+          "value": 158,
+          "target": 100,
+          "color": "bleu",
+          "ratio": 1.58
+        }
+      },
+      "recommendations": [],
+      "urgent_kpis": []
+    },
+    "closer_paris": {
+      "role": "closer_paris",
+      "label": "Closer Paris",
+      "is_admin": false,
+      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "kpis": {
+        "closing_rate": {
+          "name": "closing_rate",
+          "value": 29.26,
+          "target": 25,
+          "color": "bleu",
+          "ratio": 1.17
+        },
+        "revenue_paris": {
+          "name": "revenue_paris",
+          "value": 343113.0,
+          "target": 30000,
+          "color": "bleu",
+          "ratio": 11.44
+        },
+        "calls_done": {
+          "name": "calls_done",
+          "value": 24.0,
+          "target": 60,
+          "color": "rouge",
+          "ratio": 0.4
+        },
+        "leads_paris": {
+          "name": "leads_paris",
+          "value": 134.0,
+          "target": 50,
+          "color": "bleu",
+          "ratio": 2.68
+        }
+      },
+      "recommendations": [
+        {
+          "kpi": "calls_done",
+          "severity": "urgent",
+          "color": "rouge",
+          "value": 24.0,
+          "target": 60,
+          "action": "[A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour."
+        }
+      ],
+      "urgent_kpis": [
+        {
+          "kpi": "calls_done",
+          "severity": "urgent",
+          "color": "rouge",
+          "value": 24.0,
+          "target": 60,
+          "action": "[A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour."
+        }
+      ]
+    },
+    "infirmiere_paris": {
+      "role": "infirmiere_paris",
+      "label": "Infirmiere Paris",
+      "is_admin": false,
+      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "kpis": {},
+      "recommendations": [],
+      "urgent_kpis": []
+    },
+    "manager_agen": {
+      "role": "manager_agen",
+      "label": "Manager Agen",
+      "is_admin": false,
+      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "kpis": {
+        "team_activity_agen": {
+          "name": "team_activity_agen",
+          "value": 100.0,
+          "target": 80,
+          "color": "bleu",
+          "ratio": 1.25
+        }
+      },
+      "recommendations": [],
+      "urgent_kpis": []
+    }
+  }
+}
