@@ -83,7 +83,7 @@ roles:
       kpis: ["messages_received", "instagram_replies", "appointments_agen", "response_time"]
     closer_paris:
       label: "Closer Paris"
-      emails: []
+      emails: ["secretariatdrdelobaux@gmail.com"]
       kpis: ["leads_paris", "calls_done", "closing_rate", "revenue_paris"]
     infirmiere_paris:
       label: "Infirmiere Paris"
