@@ -36,17 +36,33 @@ youtube_channel:
   channel_id: ""              # renseigne channel_id OU handle
   handle: "@dralexisdelobaux"
 
-# Source de l'app de closing (https://viral-intel-pipeline.vercel.app/dashboard).
-# URL d'un CSV/JSON publie OU endpoint API. Laisser vide tant qu'indisponible.
+# Sources de donnees metier (Google Sheets du dashboard / app de closing).
+# Chaque source est lue en CSV. La feuille doit etre accessible :
+#  - soit "Publiee sur le web" (Fichier > Partager > Publier sur le web), ou
+#  - soit partagee "Tout le monde avec le lien : Lecteur".
+# column_map traduit les colonnes reelles vers les KPIs internes
+# (ex: "CA Paris": revenue_paris). A remplir une fois les colonnes connues.
 closing_app:
-  enabled: false
-  data_url: ""
-  format: "csv"               # "csv" ou "json"
+  enabled: true
+  sources:
+    - id: "1m7ITSo_sbDY6XxHufA0FONGyXG3GBOPSKyKtEIrjzNI"
+      gid: "0"
+      label: "source_1"
+    - id: "1wh2_HjJPY18hizGYKBOFIylG-GEI83n-U3BZOY7tkbE"
+      gid: "0"
+      label: "source_2"
+    - id: "1B9pS-WMumtDYLKYUFvKsB1jjmF9FfEWIarvaowU-4Sg"
+      gid: "0"
+      label: "source_3"
+    - id: "1W2XjjEElzmpT-qQarnL7Iwe6rJr0r9AAHpK7uCCn4Z4"
+      gid: "0"
+      label: "source_4"
+  column_map: {}                # ex: { "CA Paris": "revenue_paris" }
 
-# Publication des metriques vers Google Sheets (modele des 6 sheets du dashboard).
+# Publication des metriques + snapshot JSON (lu par l'API serverless).
 sheets:
   enabled: false              # true quand le service account est configure
-  spreadsheet_id: ""
+  spreadsheet_id: ""          # spreadsheet ou ecrire (peut etre un nouveau)
   worksheet: "social_metrics"
 
 # Identification par email et dashboards par role.

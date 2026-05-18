@@ -96,21 +96,49 @@ def _persist_snapshot(payload):
     conn.close()
 
 
-def _fetch_closing(cfg):
-    cl = cfg.get("closing_app", {})
-    if not cl.get("enabled") or not cl.get("data_url"):
-        return {"ok": False, "reason": "closing_app desactive ou data_url vide"}
-    try:
-        resp = requests.get(cl["data_url"], timeout=30)
-        resp.raise_for_status()
-        if cl.get("format") == "json":
-            return {"ok": True, "data": resp.json()}
-        import csv
+def _csv_export_url(sheet_id, gid="0"):
+    return (f"https://docs.google.com/spreadsheets/d/{sheet_id}"
+            f"/export?format=csv&gid={gid}")
 
-        rows = list(csv.DictReader(io.StringIO(resp.text)))
-        return {"ok": True, "data": rows}
-    except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+
+def _fetch_closing(cfg):
+    import csv
+
+    cl = cfg.get("closing_app", {})
+    if not cl.get("enabled"):
+        return {"ok": False, "reason": "closing_app desactive"}
+
+    sources = cl.get("sources")
+    if not sources and cl.get("data_url"):  # retro-compat ancien format
+        sources = [{"id": None, "url": cl["data_url"],
+                    "label": "data_url", "gid": "0"}]
+    if not sources:
+        return {"ok": False, "reason": "aucune source configuree"}
+
+    by_source, errors, rows = {}, {}, []
+    for src in sources:
+        label = src.get("label") or src.get("id", "src")
+        url = src.get("url") or _csv_export_url(
+            src["id"], str(src.get("gid", "0")))
+        try:
+            resp = requests.get(url, timeout=30)
+            resp.raise_for_status()
+            text = resp.text
+            if text.lstrip().startswith("<"):  # HTML = feuille non accessible
+                raise RuntimeError(
+                    "reponse HTML (feuille non publiee / non partagee)")
+            src_rows = list(csv.DictReader(io.StringIO(text)))
+            by_source[label] = src_rows
+            rows.extend(src_rows)
+        except Exception as exc:
+            errors[label] = str(exc)
+
+    return {
+        "ok": bool(rows),
+        "data": rows,
+        "by_source": by_source,
+        "errors": errors or None,
+    }
 
 
 def collect_all():
@@ -172,19 +200,23 @@ def _build_kpis(payload, cfg):
         kpis["youtube_subscribers"] = _kpi(
             "youtube_subscribers", yt.get("subscribers", 0), targets)
 
-    # KPIs metier issus de l'app de closing (si dispo).
+    # KPIs metier issus des sheets de closing (si dispo).
     closing = payload.get("closing") or {}
+    col_map = (cfg.get("closing_app", {}) or {}).get("column_map") or {}
     if closing.get("ok") and isinstance(closing.get("data"), list):
         agg = {}
         for row in closing["data"]:
-            for k, v in row.items():
+            for raw_k, v in row.items():
+                k = col_map.get(raw_k, raw_k)  # colonne reelle -> KPI interne
+                if k not in targets:
+                    continue
                 try:
-                    agg[k] = agg.get(k, 0) + float(v)
+                    agg[k] = agg.get(k, 0) + float(
+                        str(v).replace(" ", "").replace(",", "."))
                 except (TypeError, ValueError):
                     continue
         for k, v in agg.items():
-            if k in targets:
-                kpis[k] = _kpi(k, v, targets)
+            kpis[k] = _kpi(k, v, targets)
 
     return kpis
 
