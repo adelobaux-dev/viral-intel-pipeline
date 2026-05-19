@@ -12,6 +12,7 @@ import { ErrorLogPanel } from "@/components/ErrorLogPanel";
 import { TeamReportPanel } from "@/components/TeamReportPanel";
 import { CallsTrash } from "@/components/CallsTrash";
 import { ResetRankingsButton } from "@/components/ResetRankingsButton";
+import { DashboardAlerts } from "@/components/DashboardAlerts";
 import { APP_VERSION } from "@/lib/version";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
@@ -94,6 +95,7 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+        <DashboardAlerts />
         <header className="overflow-hidden rounded-2xl bg-gradient-to-br from-medical-800 via-medical-700 to-medical-900 px-7 py-6 text-white shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>

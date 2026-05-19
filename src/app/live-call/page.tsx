@@ -8,6 +8,8 @@ import { RecommendationCards } from "@/components/RecommendationCards";
 import { CallFeedbackModal } from "@/components/CallFeedbackModal";
 import { PatientDossier } from "@/components/PatientDossier";
 import { HealthMonitor } from "@/components/HealthMonitor";
+import { LiveCallAlerts } from "@/components/LiveCallAlerts";
+import { useToast } from "@/components/Toast";
 import { PatientNameInput } from "@/components/PatientNameInput";
 import { SignOutButton } from "@/components/SignOutButton";
 import { useCallStore } from "@/lib/store";
@@ -25,6 +27,7 @@ export default function LiveCallPage() {
     reset,
     clearConversation,
   } = useCallStore();
+  const { notify } = useToast();
 
   const [patientEmail, setPatientEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -63,6 +66,20 @@ export default function LiveCallPage() {
         .filter((l) => l.isFinal)
         .map((l) => `${l.speaker === "user" ? "Closer" : "Patient"}: ${l.text}`)
         .join("\n");
+
+      // (8) Aucune prochaine étape verrouillée ?
+      if (
+        !/\b(rendez-?vous|rdv|devis|pr[ée]paiement|acompte|consultation)\b/i.test(
+          transcript,
+        )
+      ) {
+        notify({
+          key: `nonext-${Date.now()}`,
+          tone: "warn",
+          title: "Aucune prochaine étape verrouillée",
+          body: "Pense à proposer RDV / devis / prépaiement avant de raccrocher.",
+        });
+      }
 
       // Remet la zone conversation à zéro dès la fin (transcript déjà capturé).
       clearConversation();
@@ -165,6 +182,7 @@ export default function LiveCallPage() {
         <div className="bg-red-50 px-6 py-2 text-sm text-red-700">{error}</div>
       )}
 
+      <LiveCallAlerts />
       <PatientDossier />
       <HealthMonitor />
 

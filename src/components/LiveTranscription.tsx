@@ -23,6 +23,7 @@ export function LiveTranscription() {
   const connectionRef = useRef<LiveClient | null>(null);
   const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retriesRef = useRef(0);
+  const watchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleChunk = useCallback((chunk: Blob) => {
     const conn = connectionRef.current;
@@ -132,14 +133,40 @@ export function LiveTranscription() {
 
   // Démarre / arrête la capture en fonction de l'état d'appel global.
   useEffect(() => {
+    const clearWatchdog = () => {
+      if (watchdogRef.current) clearInterval(watchdogRef.current);
+      watchdogRef.current = null;
+    };
+
     if (isRecording) {
       connect().then(() => recorder.start());
+
+      // Watchdog : si après ~10 s la transcription n'a pas démarré
+      // (connexion non ouverte ou aucune phrase), on FORCE un redémarrage.
+      clearWatchdog();
+      watchdogRef.current = setInterval(() => {
+        const st = useCallStore.getState();
+        if (!st.isRecording) return;
+        const elapsed = (Date.now() - (st.startedAt ?? Date.now())) / 1000;
+        if (elapsed < 10) return;
+        const open = connectionRef.current?.getReadyState() === 1;
+        const hasLines = st.lines.some((l) => l.isFinal);
+        if (!open || !hasLines) {
+          setStatus("reconnecting");
+          retriesRef.current = 0;
+          recorder.stop();
+          teardown();
+          connect().then(() => recorder.start());
+        }
+      }, 10000);
     } else {
+      clearWatchdog();
       recorder.stop();
       teardown();
       setStatus("idle");
     }
     return () => {
+      clearWatchdog();
       recorder.stop();
       teardown();
     };
