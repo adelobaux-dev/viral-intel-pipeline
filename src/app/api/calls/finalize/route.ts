@@ -73,6 +73,7 @@ export async function POST(request: Request) {
 
   // 1. Scoring IA (personnalisé selon le profil de l'intervenant)
   let userProfile: string | undefined;
+  let existingPatterns: string | undefined;
   try {
     const { data: prof } = await supabase
       .from("user_profiles")
@@ -82,6 +83,19 @@ export async function POST(request: Request) {
     userProfile = prof?.analysis ?? undefined;
   } catch {
     /* table user_profiles absente : ignorer */
+  }
+  try {
+    const { data: cp } = await supabase
+      .from("user_comm_patterns")
+      .select("patterns")
+      .eq("user_id", user.id)
+      .maybeSingle<{ patterns: string }>();
+    existingPatterns = cp?.patterns ?? undefined;
+    if (existingPatterns) {
+      userProfile = `${userProfile ?? ""}\n\nPATTERNS DE COMMUNICATION RÉCURRENTS (appris) :\n${existingPatterns}`;
+    }
+  } catch {
+    /* table user_comm_patterns absente : ignorer */
   }
 
   let feedback: AiFeedback;
@@ -129,6 +143,37 @@ export async function POST(request: Request) {
     }
   } catch {
     // l'auto-apprentissage ne doit jamais bloquer la finalisation
+  }
+
+  // 2c. Auto-apprentissage des PATTERNS de communication de la personne
+  // connectée (reconnaissance des récurrences propres à ce communicant).
+  try {
+    const myUtterances = body.transcript
+      .split("\n")
+      .filter((l) => /^closer\s*:/i.test(l.trim()))
+      .map((l) => l.replace(/^closer\s*:/i, "").trim())
+      .join("\n");
+    if (myUtterances.trim()) {
+      const { extractCommPatterns } = await import("@/lib/anthropic");
+      const updated = await extractCommPatterns(
+        myUtterances,
+        existingPatterns,
+      );
+      if (updated) {
+        await createAdminClient()
+          .from("user_comm_patterns")
+          .upsert(
+            {
+              user_id: user.id,
+              patterns: updated.slice(0, 6000),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id" },
+          );
+      }
+    }
+  } catch {
+    // ne jamais bloquer la finalisation
   }
 
   // 3. Intégrations Google (best-effort, non bloquantes)

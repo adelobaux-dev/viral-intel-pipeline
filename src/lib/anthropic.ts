@@ -258,3 +258,36 @@ Structure (français, concis) :
     ? response.content[0].text
     : "Profil non généré.";
 }
+
+/**
+ * Reconnaissance des patterns de communication RÉCURRENTS d'une personne.
+ * Fusionne l'observation de la conversation avec son profil connu, pour
+ * un coaching de plus en plus personnalisé (auto-apprentissage par user).
+ */
+export async function extractCommPatterns(
+  userUtterances: string,
+  existing?: string,
+): Promise<string | null> {
+  if (!userUtterances.trim()) return existing ?? null;
+  try {
+    const response = await client().messages.create({
+      model: MODEL,
+      max_tokens: 700,
+      system: `Tu es un expert en analyse des patterns de communication (Process Comm, Comm Colors, PNL). On te donne ce que DIT une personne précise pendant ses conversations patients, et son profil de patterns DÉJÀ connu.
+Mets à jour un profil STABLE et concis de ses patterns RÉCURRENTS (tics de langage, posture par défaut, forces, faiblesses, déclencheurs de stress, ce qui marche pour elle). Fusionne intelligemment avec l'existant (affine, ne fais pas qu'empiler). Format : puces courtes, français.`,
+      messages: [
+        {
+          role: "user",
+          content: `PATTERNS DÉJÀ CONNUS :\n${existing || "(aucun)"}\n\nNOUVELLES PRISES DE PAROLE DE LA PERSONNE :\n${userUtterances.slice(0, 7000)}`,
+        },
+      ],
+    });
+    const txt =
+      response.content[0]?.type === "text"
+        ? response.content[0].text.trim()
+        : "";
+    return txt || existing || null;
+  } catch {
+    return existing ?? null;
+  }
+}

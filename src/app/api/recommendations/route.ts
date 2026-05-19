@@ -114,6 +114,18 @@ export async function GET(request: Request) {
         } catch {
           /* table user_profiles absente : ignorer */
         }
+        try {
+          const { data: cp } = await supabase
+            .from("user_comm_patterns")
+            .select("patterns")
+            .eq("user_id", user.id)
+            .maybeSingle<{ patterns: string }>();
+          if (cp?.patterns) {
+            userProfile = `${userProfile ?? ""}\n\nPATTERNS DE COMMUNICATION RÉCURRENTS (appris) :\n${cp.patterns}`;
+          }
+        } catch {
+          /* table user_comm_patterns absente : ignorer */
+        }
 
         const rec = await getLiveRecommendation(
           recentLines,

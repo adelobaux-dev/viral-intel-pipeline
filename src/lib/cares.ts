@@ -93,3 +93,21 @@ export function modeObjective(mode: ConsultationMode | undefined): string {
   const found = CONSULTATION_MODES.find((m) => m.key === mode);
   return found ? found.objective : "";
 }
+
+/** Mappe le rôle du compte connecté vers le mode C.A.R.E.S. adapté. */
+export function roleToMode(role: string | undefined): ConsultationMode {
+  switch (role) {
+    case "doctor":
+      return "chirurgien";
+    case "ide":
+      return "ide";
+    case "closer":
+      return "closeuse";
+    case "secretaire":
+      return "secretaire";
+    case "admin":
+      return "chirurgien"; // Dr Delobaux ; modifiable manuellement
+    default:
+      return "closeuse";
+  }
+}

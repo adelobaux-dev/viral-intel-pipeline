@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Lightbulb } from "lucide-react";
 import { useCallStore, loadMode } from "@/lib/store";
-import { CARES_LABELS, CONSULTATION_MODES } from "@/lib/cares";
+import { CARES_LABELS, CONSULTATION_MODES, roleToMode } from "@/lib/cares";
 
 const POLL_MS = 10000;
 
@@ -50,9 +50,13 @@ export function RecommendationCards() {
   const setMode = useCallStore((s) => s.setMode);
   const esRef = useRef<EventSource | null>(null);
 
-  // Restaure le profil (mode) de la dernière connexion de l'utilisateur.
+  // Sélectionne automatiquement le mode selon le STATUT du compte connecté
+  // (secrétaire / chirurgien / coordinatrice / IDE). Reste modifiable.
   useEffect(() => {
-    setMode(loadMode());
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => setMode(roleToMode(d?.role)))
+      .catch(() => setMode(loadMode()));
   }, [setMode]);
 
   useEffect(() => {

@@ -56,3 +56,32 @@ export function looseNameMatch(query: string, candidate: string): boolean {
   }
   return false;
 }
+
+/** Met une majuscule à la 1re lettre de chaque mot (prénom/nom). */
+export function titleCaseName(s: string): string {
+  return s
+    .replace(/\s+/g, " ")
+    .replace(/^\s+/, "")
+    .split(" ")
+    .map((w) =>
+      w
+        .split("-")
+        .map((p) =>
+          p ? p.charAt(0).toLocaleUpperCase("fr") + p.slice(1).toLocaleLowerCase("fr") : p,
+        )
+        .join("-"),
+    )
+    .join(" ");
+}
+
+/**
+ * Réorganise "Prénom Nom" → "Nom Prénom" (le NOM affiché en premier).
+ * Heuristique : le dernier token est considéré comme le nom de famille.
+ */
+export function surnameFirst(s: string): string {
+  const parts = titleCaseName(s).trim().split(" ").filter(Boolean);
+  if (parts.length < 2) return parts.join(" ");
+  const surname = parts[parts.length - 1];
+  const given = parts.slice(0, parts.length - 1).join(" ");
+  return `${surname} ${given}`;
+}

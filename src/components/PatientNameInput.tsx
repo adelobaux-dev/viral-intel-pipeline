@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { surnameFirst, titleCaseName } from "@/lib/patientMatch";
 
 export function PatientNameInput({
   value,
@@ -27,19 +28,34 @@ export function PatientNameInput({
     };
   }, [value]);
 
+  // Affichage "NOM Prénom" + dédoublonnage + tri alpha (nom d'abord).
+  const formatted = useMemo(() => {
+    const seen = new Set<string>();
+    return suggestions
+      .map((s) => surnameFirst(s))
+      .filter((s) => {
+        const k = s.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      })
+      .sort((a, b) => a.localeCompare(b, "fr"));
+  }, [suggestions]);
+
   return (
     <>
       <input
-        className="input w-52"
-        placeholder="Nom du patient (recherche)"
+        className="input w-56"
+        placeholder="Nom Prénom du patient"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(titleCaseName(e.target.value))}
+        onBlur={(e) => onChange(surnameFirst(e.target.value))}
         disabled={disabled}
         list="patient-suggestions"
         autoComplete="off"
       />
       <datalist id="patient-suggestions">
-        {suggestions.map((s) => (
+        {formatted.map((s) => (
           <option key={s} value={s} />
         ))}
       </datalist>
