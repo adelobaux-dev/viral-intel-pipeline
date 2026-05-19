@@ -31,6 +31,37 @@ export function VersionUpdater() {
     }
   }, []);
 
+  // Auto-détection : si l'app chargée est en retard sur le serveur,
+  // on recharge automatiquement (cache vidé). Anti-boucle via guard.
+  useEffect(() => {
+    if (window.sessionStorage.getItem(PENDING_KEY)) return; // retour de reload
+    let cancelled = false;
+    fetch(`/api/version?t=${Date.now()}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then(async (d: { version: string }) => {
+        if (cancelled || !d?.version || d.version === APP_VERSION) return;
+        const guard = "version.autotried";
+        if (window.sessionStorage.getItem(guard) === d.version) return;
+        window.sessionStorage.setItem(guard, d.version);
+        window.sessionStorage.setItem(PENDING_KEY, d.version);
+        try {
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        } catch {
+          /* ignore */
+        }
+        const u = new URL(window.location.href);
+        u.searchParams.set("v", d.version);
+        window.location.replace(u.toString());
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function refresh() {
     setPhase("checking");
     setProgress(8);
