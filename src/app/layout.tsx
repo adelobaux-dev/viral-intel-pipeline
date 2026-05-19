@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ErrorReporter } from "@/components/ErrorReporter";
+import { ActivityHeartbeat } from "@/components/ActivityHeartbeat";
 import { ToastProvider } from "@/components/Toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="fr" className={inter.variable}>
       <body>
         <ErrorReporter />
+        <ActivityHeartbeat />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
