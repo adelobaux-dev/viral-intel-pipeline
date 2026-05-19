@@ -68,11 +68,11 @@ export default function OnboardingPage() {
             Cabinet Dr Alexis Delobaux
           </p>
           <h1 className="mt-2 text-2xl font-bold text-slate-800">
-            Profil de personnalité & communication
+            Profil de communication
           </h1>
           <p className="mt-2 text-sm text-slate-500">
             Quelques questions (Comm Colors / Process Comm) pour adapter le
-            coaching à TA personnalité. ~3 minutes.
+            coaching à TA communication. ~3 minutes.
           </p>
         </div>
 

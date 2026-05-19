@@ -79,6 +79,29 @@ export function AppRecommendations() {
 
   const isItem = (l: string) => !(l.length < 60 && /[:：]\s*$/.test(l));
 
+  function checkAll() {
+    setCounts((prev) => {
+      const n = { ...prev };
+      items
+        .filter((l) => isItem(l) && !hidden.has(l))
+        .forEach((l) => {
+          n[l] = ARCHIVE_THRESHOLD;
+        });
+      window.localStorage.setItem(COUNT_KEY, JSON.stringify(n));
+      return n;
+    });
+  }
+  function hideAll() {
+    if (!window.confirm("Supprimer toutes les recommandations affichées ?"))
+      return;
+    setHidden((prev) => {
+      const n = new Set(prev);
+      items.filter((l) => isItem(l)).forEach((l) => n.add(l));
+      window.localStorage.setItem(HIDE_KEY, JSON.stringify(Array.from(n)));
+      return n;
+    });
+  }
+
   async function load(force = false) {
     setLoading(true);
     setError(null);
@@ -128,6 +151,23 @@ export function AppRecommendations() {
           Régénérer
         </button>
       </div>
+
+      {visible.some((l) => isItem(l)) && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          <button
+            onClick={checkAll}
+            className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+          >
+            <Check className="h-3.5 w-3.5" /> Tout cocher
+          </button>
+          <button
+            onClick={hideAll}
+            className="inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+          >
+            <X className="h-3.5 w-3.5" /> Tout supprimer
+          </button>
+        </div>
+      )}
       <p className="mb-3 text-xs text-slate-500">
         Coche une recommandation à chaque avancée : après{" "}
         {ARCHIVE_THRESHOLD} validations elle passe en historique.

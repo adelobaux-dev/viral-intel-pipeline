@@ -15,7 +15,7 @@ export function DashboardAlerts() {
           notify({
             key: "onboarding",
             title: "Personnalise ton coaching (3 min)",
-            body: "Fais ton profil de personnalité pour des conseils sur-mesure.",
+            body: "Fais ton profil de communication pour des conseils sur-mesure.",
             href: "/onboarding",
             hrefLabel: "Faire le test",
           });

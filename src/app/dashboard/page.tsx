@@ -14,6 +14,7 @@ import { CallsTrash } from "@/components/CallsTrash";
 import { ResetRankingsButton } from "@/components/ResetRankingsButton";
 import { DashboardAlerts } from "@/components/DashboardAlerts";
 import { VersionUpdater } from "@/components/VersionUpdater";
+import { UserActivityPanel } from "@/components/UserActivityPanel";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -123,6 +124,26 @@ export default async function DashboardPage() {
           </div>
         </header>
 
+        {isDelobaux && team.length > 0 && (
+          <div className="card p-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+              Voir l&apos;écran d&apos;un utilisateur
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {team.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/admin/user/${m.id}`}
+                  className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-medical-300 hover:bg-medical-50 hover:text-medical-700"
+                >
+                  {m.name}{" "}
+                  <span className="text-slate-400">· {m.role}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {!hasProfile && (
           <Link
             href="/onboarding"
@@ -130,10 +151,10 @@ export default async function DashboardPage() {
           >
             <div>
               <p className="text-sm font-semibold text-medical-800">
-                Complète ton profil de personnalité (3 min)
+                Complète ton profil de communication (3 min)
               </p>
               <p className="text-xs text-medical-700">
-                Pour des conseils et feedbacks adaptés à TA personnalité
+                Pour des conseils et feedbacks adaptés à TA communication
                 (Comm Colors / Process Comm).
               </p>
             </div>
@@ -222,6 +243,12 @@ export default async function DashboardPage() {
             canDelete={isDelobaux}
           />
         </section>
+
+        {isDelobaux && (
+          <section>
+            <UserActivityPanel />
+          </section>
+        )}
 
         <div className="pt-2">
           <VersionUpdater />

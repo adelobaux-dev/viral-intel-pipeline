@@ -131,6 +131,29 @@ export function LiveTranscription() {
     }
   }, [addLine, upsertInterim]);
 
+  // Forçage manuel de la transcription (bouton + watchdog).
+  function forceRestart() {
+    setStatus("reconnecting");
+    setErrorMsg(null);
+    retriesRef.current = 0;
+    recorder.stop();
+    teardown();
+    connect().then(() => recorder.start());
+  }
+
+  // Auto-activation du micro à l'ouverture (si activé définitivement).
+  useEffect(() => {
+    if (
+      !isRecording &&
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("mic.autostart") === "1" &&
+      !recorder.isTesting
+    ) {
+      recorder.testMic();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Démarre / arrête la capture en fonction de l'état d'appel global.
   useEffect(() => {
     const clearWatchdog = () => {
@@ -207,7 +230,19 @@ export function LiveTranscription() {
         <h2 className="text-sm font-semibold text-slate-700">
           Transcription en direct
         </h2>
-        <StatusBadge status={status} error={recorder.error} />
+        <div className="flex items-center gap-2">
+          {(isRecording || recorder.isTesting) && (
+            <button
+              type="button"
+              onClick={forceRestart}
+              title="Forcer le redémarrage de la transcription"
+              className="inline-flex items-center gap-1 rounded-md border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-50"
+            >
+              <Mic className="h-3 w-3" /> Forcer
+            </button>
+          )}
+          <StatusBadge status={status} error={recorder.error} />
+        </div>
       </div>
 
       {(errorMsg || recorder.error) && (
@@ -248,6 +283,17 @@ export function LiveTranscription() {
               <MicOff className="h-3.5 w-3.5" /> Arrêter le test
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => {
+              window.localStorage.setItem("mic.autostart", "1");
+              if (!recorder.isTesting) recorder.testMic();
+            }}
+            title="Active le micro automatiquement à chaque session (plus besoin de cliquer)"
+            className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+          >
+            <Mic className="h-3.5 w-3.5" /> Activer définitivement
+          </button>
         </div>
       )}
 

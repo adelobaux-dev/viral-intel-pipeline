@@ -49,7 +49,7 @@ export async function getLiveRecommendation(
     : "";
 
   const profileBlock = userProfile?.trim()
-    ? `\n\nPROFIL DE PERSONNALITÉ DE L'INTERVENANT — adapte le ton et le canal de tes conseils à CE profil :\n${userProfile.trim().slice(0, 1500)}`
+    ? `\n\nPROFIL DE COMMUNICATION DE L'INTERVENANT — adapte le ton et le canal de tes conseils à CE profil :\n${userProfile.trim().slice(0, 1500)}`
     : "";
 
   const response = await client().messages.create({
@@ -104,7 +104,7 @@ export async function scoreCall(
   userProfile?: string,
 ): Promise<AiFeedback> {
   const profileBlock = userProfile?.trim()
-    ? `\n\nPROFIL DE PERSONNALITÉ DE L'INTERVENANT — formule le feedback de façon adaptée à CE profil (canal, ton), et cible les améliorations LES PLUS efficientes pour lui :\n${userProfile.trim().slice(0, 1500)}`
+    ? `\n\nPROFIL DE COMMUNICATION DE L'INTERVENANT — formule le feedback de façon adaptée à CE profil (canal, ton), et cible les améliorations LES PLUS efficientes pour lui :\n${userProfile.trim().slice(0, 1500)}`
     : "";
   const response = await client().messages.create({
     model: MODEL,
