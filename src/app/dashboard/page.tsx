@@ -13,7 +13,7 @@ import { TeamReportPanel } from "@/components/TeamReportPanel";
 import { CallsTrash } from "@/components/CallsTrash";
 import { ResetRankingsButton } from "@/components/ResetRankingsButton";
 import { DashboardAlerts } from "@/components/DashboardAlerts";
-import { APP_VERSION } from "@/lib/version";
+import { VersionUpdater } from "@/components/VersionUpdater";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -223,9 +223,9 @@ export default async function DashboardPage() {
           />
         </section>
 
-        <p className="pt-2 text-center text-xs text-slate-400">
-          Version déployée : {APP_VERSION}
-        </p>
+        <div className="pt-2">
+          <VersionUpdater />
+        </div>
       </div>
     </main>
   );
