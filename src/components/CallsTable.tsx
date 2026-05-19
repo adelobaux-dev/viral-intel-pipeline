@@ -168,7 +168,7 @@ Résumé patient :
             ) : (
               <Trash2 className="h-3.5 w-3.5" />
             )}
-            Supprimer la sélection
+            Supprimer les conversations sélectionnées
           </button>
         </div>
       )}
