@@ -15,69 +15,259 @@ interface Stats {
   count: number;
   avgScore: number;
   conversion: number;
+  converted: number;
   correlation: number;
   correlationPairs: number;
+}
+interface Verbatim {
+  label: string;
+  count: number;
+  avgPresent: number;
+  avgAbsent: number;
+  convPresent: number;
+}
+interface Data {
+  rows: Row[];
+  stats: Stats;
+  buckets: { label: string; count: number }[];
+  timeline: { day: string; avg: number }[];
+  scatter: { x: number; y: number }[];
+  verbatims: Verbatim[];
+}
+
+function Donut({ pct }: { pct: number }) {
+  const r = 34;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg viewBox="0 0 90 90" className="h-28 w-28">
+      <circle cx="45" cy="45" r={r} fill="none" stroke="#e2e8f0" strokeWidth="11" />
+      <circle
+        cx="45"
+        cy="45"
+        r={r}
+        fill="none"
+        stroke="#3a76ad"
+        strokeWidth="11"
+        strokeLinecap="round"
+        strokeDasharray={`${(pct / 100) * c} ${c}`}
+        transform="rotate(-90 45 45)"
+      />
+      <text
+        x="45"
+        y="50"
+        textAnchor="middle"
+        className="fill-slate-800 text-[16px] font-bold"
+      >
+        {pct}%
+      </text>
+    </svg>
+  );
 }
 
 function corrText(c: number): string {
   const a = Math.abs(c);
-  const strength =
+  const s =
     a < 0.2 ? "négligeable" : a < 0.4 ? "faible" : a < 0.6 ? "modérée" : "forte";
-  const dir = c > 0 ? "positive" : "négative";
-  return `${c} — corrélation ${strength} ${dir} (durée ↔ score)`;
+  return `${c} — corrélation ${s} ${c >= 0 ? "positive" : "négative"}`;
 }
 
 export function PerformanceTable() {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [d, setD] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/performance")
       .then((r) => r.json())
-      .then((d) => {
-        setRows(d.rows ?? []);
-        setStats(d.stats ?? null);
-      })
+      .then((x) => setD(x))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  const maxBucket = Math.max(1, ...(d?.buckets.map((b) => b.count) ?? [1]));
+  const tl = d?.timeline ?? [];
+  const tlMax = 10;
+
   return (
     <div className="card p-5">
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-4 flex items-center gap-2">
         <BarChart3 className="h-5 w-5 text-medical-600" />
         <h2 className="text-lg font-semibold text-slate-800">
-          Performance &amp; corrélation
+          Performance &amp; corrélation — analyse experte
         </h2>
         {loading && <Loader2 className="h-4 w-4 animate-spin text-slate-400" />}
       </div>
 
-      {stats && (
-        <div className="mb-3 grid gap-3 sm:grid-cols-4">
-          {[
-            ["Conversations", String(stats.count)],
-            ["Score moyen", `${stats.avgScore}/10`],
-            ["Conversion", `${stats.conversion}%`],
-            ["Corrélation", String(stats.correlation)],
-          ].map(([l, v]) => (
-            <div key={l} className="rounded-lg bg-slate-50 px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-slate-400">
-                {l}
-              </p>
-              <p className="text-lg font-bold text-slate-800">{v}</p>
+      {d?.stats && (
+        <>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {/* Camembert conversion */}
+            <div className="flex items-center gap-4 rounded-xl border border-slate-200 p-4">
+              <Donut pct={d.stats.conversion} />
+              <div>
+                <p className="text-sm font-semibold text-slate-700">
+                  Taux de conversion
+                </p>
+                <p className="text-xs text-slate-500">
+                  {d.stats.converted}/{d.stats.count} conversations ≥ 6/10
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Score moyen{" "}
+                  <span className="font-bold text-medical-700">
+                    {d.stats.avgScore}/10
+                  </span>
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
-      {stats && stats.correlationPairs >= 3 && (
-        <p className="mb-3 text-xs text-slate-500">
-          {corrText(stats.correlation)} · sur {stats.correlationPairs}{" "}
-          conversations chronométrées.
-        </p>
+
+            {/* Histogramme scores */}
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-2 text-sm font-semibold text-slate-700">
+                Distribution des scores
+              </p>
+              <div className="flex h-24 items-end gap-2">
+                {d.buckets.map((b) => (
+                  <div key={b.label} className="flex flex-1 flex-col items-center">
+                    <div
+                      className="w-full rounded-t bg-medical-500"
+                      style={{
+                        height: `${(b.count / maxBucket) * 80}px`,
+                        minHeight: b.count ? "4px" : "0",
+                      }}
+                    />
+                    <span className="mt-1 text-[10px] text-slate-500">
+                      {b.label}
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-700">
+                      {b.count}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Courbe temporelle */}
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-2 text-sm font-semibold text-slate-700">
+                Score moyen dans le temps
+              </p>
+              {tl.length >= 2 ? (
+                <svg viewBox="0 0 100 40" className="h-24 w-full">
+                  <polyline
+                    fill="none"
+                    stroke="#3a76ad"
+                    strokeWidth="2"
+                    points={tl
+                      .map(
+                        (p, i) =>
+                          `${(i / (tl.length - 1)) * 100},${
+                            40 - (p.avg / tlMax) * 38
+                          }`,
+                      )
+                      .join(" ")}
+                  />
+                </svg>
+              ) : (
+                <p className="text-xs text-slate-400">
+                  Pas assez d&apos;historique.
+                </p>
+              )}
+              <p className="text-[10px] text-slate-500">
+                {tl[0]?.day} → {tl[tl.length - 1]?.day}
+              </p>
+            </div>
+          </div>
+
+          {/* Nuage durée ↔ score */}
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-1 text-sm font-semibold text-slate-700">
+                Corrélation durée ↔ score
+              </p>
+              <p className="mb-2 text-xs text-slate-500">
+                {d.stats.correlationPairs >= 3
+                  ? corrText(d.stats.correlation)
+                  : "Pas assez de données chronométrées."}
+              </p>
+              <svg
+                viewBox="0 0 100 60"
+                className="h-32 w-full rounded bg-slate-50"
+              >
+                {d.scatter.map((p, i) => {
+                  const maxX = Math.max(...d.scatter.map((s) => s.x), 1);
+                  return (
+                    <circle
+                      key={i}
+                      cx={(p.x / maxX) * 96 + 2}
+                      cy={58 - (p.y / 10) * 56}
+                      r="1.6"
+                      className="fill-medical-500"
+                      opacity="0.6"
+                    />
+                  );
+                })}
+              </svg>
+              <p className="text-[10px] text-slate-400">
+                axe X = durée (min) · axe Y = score /10
+              </p>
+            </div>
+
+            {/* Impact des verbatims */}
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-2 text-sm font-semibold text-slate-700">
+                Impact des verbatims sur le score
+              </p>
+              <div className="space-y-1.5">
+                {d.verbatims.slice(0, 8).map((v) => {
+                  const delta = v.avgPresent - v.avgAbsent;
+                  return (
+                    <div key={v.label} className="text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-700">
+                          {v.label}{" "}
+                          <span className="text-slate-400">({v.count})</span>
+                        </span>
+                        <span
+                          className={
+                            delta >= 0
+                              ? "font-semibold text-emerald-600"
+                              : "font-semibold text-red-600"
+                          }
+                        >
+                          {delta >= 0 ? "+" : ""}
+                          {delta.toFixed(1)} pt · {v.avgPresent}/10
+                        </span>
+                      </div>
+                      <div className="mt-0.5 h-1.5 w-full rounded-full bg-slate-200">
+                        <div
+                          className={`h-full rounded-full ${
+                            delta >= 0 ? "bg-emerald-500" : "bg-red-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(100, (v.avgPresent / 10) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                {d.verbatims.length === 0 && (
+                  <p className="text-xs text-slate-400">
+                    Pas encore de transcriptions analysables.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-3 text-[11px] text-slate-400">
+            Lecture experte : un verbatim avec un fort « + pt » est un signal
+            favorable à exploiter ; un « − pt » signale une objection à
+            désamorcer plus tôt dans la conversation.
+          </p>
+        </>
       )}
 
-      <div className="max-h-96 overflow-y-scroll rounded-lg border border-slate-200">
+      <div className="mt-4 max-h-80 overflow-y-scroll rounded-lg border border-slate-200">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
             <tr>
@@ -89,7 +279,7 @@ export function PerformanceTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {rows.map((r, i) => (
+            {(d?.rows ?? []).map((r, i) => (
               <tr key={i} className="hover:bg-slate-50">
                 <td className="px-3 py-2 text-slate-600">
                   {new Date(r.date).toLocaleString("fr-FR")}
@@ -117,7 +307,7 @@ export function PerformanceTable() {
                 </td>
               </tr>
             ))}
-            {!loading && rows.length === 0 && (
+            {!loading && (d?.rows.length ?? 0) === 0 && (
               <tr>
                 <td colSpan={5} className="px-3 py-6 text-center text-slate-400">
                   Aucune conversation scorée.
