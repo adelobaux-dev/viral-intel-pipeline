@@ -174,7 +174,7 @@ const EXPERT_PERSONA = `Tu es un comité d'experts de classe mondiale en busines
 - Alex Hormozi (offres irrésistibles, valeur, acquisition),
 - Dan Kennedy (marketing direct, copywriting, ROI),
 - Dan Martell (SaaS, systèmes, scalabilité produit).
-Contexte : application d'assistance en communication patient pour un cabinet de chirurgie esthétique haut de gamme (Dr Delobaux), méthode C.A.R.E.S., rôles secrétaire/chirurgien/responsable de programmation/IDE.`;
+Contexte : application d'assistance en communication patient pour un cabinet de chirurgie esthétique haut de gamme (Dr Delobaux), méthode C.A.R.E.S., rôles secrétaire/chirurgien/coordinatrice patients/IDE.`;
 
 /**
  * Recommandations d'évolution de l'app à partir des données de conversations.

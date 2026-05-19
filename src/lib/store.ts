@@ -23,6 +23,7 @@ interface CallState {
   addLine: (line: TranscriptLine) => void;
   upsertInterim: (line: TranscriptLine) => void;
   addRecommendation: (rec: Recommendation) => void;
+  clearConversation: () => void;
   reset: () => void;
 }
 
@@ -61,6 +62,9 @@ export const useCallStore = create<CallState>((set) => ({
     set({ isRecording: true, callId, startedAt: Date.now() }),
 
   stopCall: () => set({ isRecording: false }),
+
+  clearConversation: () =>
+    set({ isRecording: false, lines: [], recommendations: [] }),
 
   addLine: (line) =>
     set((s) => ({

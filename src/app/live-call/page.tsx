@@ -7,6 +7,7 @@ import { LiveTranscription } from "@/components/LiveTranscription";
 import { RecommendationCards } from "@/components/RecommendationCards";
 import { CallFeedbackModal } from "@/components/CallFeedbackModal";
 import { PatientDossier } from "@/components/PatientDossier";
+import { HealthMonitor } from "@/components/HealthMonitor";
 import { PatientNameInput } from "@/components/PatientNameInput";
 import { SignOutButton } from "@/components/SignOutButton";
 import { useCallStore } from "@/lib/store";
@@ -22,6 +23,7 @@ export default function LiveCallPage() {
     stopCall,
     lines,
     reset,
+    clearConversation,
   } = useCallStore();
 
   const [patientEmail, setPatientEmail] = useState("");
@@ -61,6 +63,9 @@ export default function LiveCallPage() {
         .filter((l) => l.isFinal)
         .map((l) => `${l.speaker === "user" ? "Closer" : "Patient"}: ${l.text}`)
         .join("\n");
+
+      // Remet la zone conversation à zéro dès la fin (transcript déjà capturé).
+      clearConversation();
 
       const res = await fetch("/api/calls/finalize", {
         method: "POST",
@@ -161,6 +166,7 @@ export default function LiveCallPage() {
       )}
 
       <PatientDossier />
+      <HealthMonitor />
 
       <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden p-4 lg:grid-cols-3">
         <div className="lg:col-span-2">

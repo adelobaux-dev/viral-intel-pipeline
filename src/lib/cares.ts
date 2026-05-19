@@ -67,13 +67,13 @@ export const CONSULTATION_MODES: {
     key: "chirurgien",
     label: "Chirurgien",
     objective:
-      "Tu assistes le CHIRURGIEN (Dr Delobaux). Objectif : maximiser l'adhésion du patient au projet et créer l'URGENCE du projet, tout en préparant le terrain pour la responsable de programmation qui interviendra ensuite (faire signer le devis). Priorité : expertise rassurante, projection du résultat, importance de ne pas reporter.",
+      "Tu assistes le CHIRURGIEN (Dr Delobaux). Objectif : maximiser l'adhésion du patient au projet et créer l'URGENCE du projet, tout en préparant le terrain pour la coordinatrice patients qui interviendra ensuite (faire signer le devis). Priorité : expertise rassurante, projection du résultat, importance de ne pas reporter.",
   },
   {
     key: "closeuse",
-    label: "Responsable de programmation",
+    label: "Coordinatrice patients",
     objective:
-      "Tu assistes la RESPONSABLE DE PROGRAMMATION. Objectif : maximiser la SIGNATURE DU DEVIS. Priorité : approfondir les 'pains' (douleurs, gênes, impact émotionnel et quotidien du patient), amplifier la valeur de la solution, lever les objections prix/peur, et conduire fermement vers la signature.",
+      "Tu assistes la COORDINATRICE PATIENTS. Objectif : maximiser la SIGNATURE DU DEVIS. Priorité : approfondir les 'pains' (douleurs, gênes, impact émotionnel et quotidien du patient), amplifier la valeur de la solution, lever les objections prix/peur, et conduire fermement vers la signature.",
   },
   {
     key: "ide",

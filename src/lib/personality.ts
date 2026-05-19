@@ -105,7 +105,7 @@ export const PERSONALITY_QUESTIONS: PersonalityQuestion[] = [
     options: [
       "Secrétaire",
       "Chirurgien",
-      "Responsable de programmation",
+      "Coordinatrice patients",
       "Infirmière (IDE)",
     ],
   },
