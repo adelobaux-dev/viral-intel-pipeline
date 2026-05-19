@@ -50,6 +50,26 @@ export function RecommendationCards() {
   const setMode = useCallStore((s) => s.setMode);
   const esRef = useRef<EventSource | null>(null);
 
+  // Gamification : points de progression/régression de conversion.
+  const [flash, setFlash] = useState<number | null>(null);
+  const prevScoreRef = useRef<number | null>(null);
+  const lastIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const top = recommendations[0];
+    if (!top || top.id === lastIdRef.current) return;
+    lastIdRef.current = top.id;
+    const prev = prevScoreRef.current;
+    const cur = top.closingScore;
+    if (prev !== null && cur !== prev) {
+      setFlash(cur - prev);
+      const t = setTimeout(() => setFlash(null), 1000);
+      prevScoreRef.current = cur;
+      return () => clearTimeout(t);
+    }
+    prevScoreRef.current = cur;
+  }, [recommendations]);
+
   // Sélectionne automatiquement le mode selon le STATUT du compte connecté
   // (secrétaire / chirurgien / coordinatrice / IDE). Reste modifiable.
   useEffect(() => {
@@ -131,7 +151,20 @@ export function RecommendationCards() {
           return (
             <div className="border-b border-slate-100 px-4 py-3">
               <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-600">
-                <span>Score de closing</span>
+                <span className="flex items-center gap-2">
+                  Score de conversion
+                  {flash !== null && flash !== 0 && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-bold animate-[fadeIn_.15s_ease-out] ${
+                        flash > 0
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {flash > 0 ? `+${flash}` : flash}
+                    </span>
+                  )}
+                </span>
                 <span>
                   {s}/10 · {st.label}
                 </span>
@@ -149,8 +182,8 @@ export function RecommendationCards() {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-scroll p-4">
         {recommendations.length === 0 && (
           <p className="text-sm text-slate-400">
-            Les conseils de closing s&apos;afficheront ici toutes les 10
-            secondes.
+            Les conseils s&apos;afficheront ici toutes les 10 secondes,
+            adaptés à votre rôle.
           </p>
         )}
         <AnimatePresence initial={false}>

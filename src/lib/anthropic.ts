@@ -45,7 +45,7 @@ export async function getLiveRecommendation(
 
   const obj = modeObjective(mode);
   const modeBlock = obj
-    ? `\n\nRÔLE DE L'INTERVENANT — ADAPTE TES CONSEILS À CE CONTEXTE :\n${obj}`
+    ? `\n\n⚠️ PRIORITÉ ABSOLUE — RÔLE DE L'INTERVENANT : ${obj}\nChaque conseil que tu donnes DOIT servir directement cet objectif de rôle et être formulé pour CE rôle précis. Ne donne jamais un conseil générique : il doit être pertinent pour ce rôle, à ce moment.`
     : "";
 
   const profileBlock = userProfile?.trim()
@@ -57,10 +57,12 @@ export async function getLiveRecommendation(
     max_tokens: 300,
     system: `${CABINET_CONTEXT}${modeBlock}${profileBlock}${knowledgeBlock}
 
-Analyse la conversation EN COURS. Donne UN seul conseil de closing, très court (1 phrase max), à lire en un coup d'œil.
-Évalue aussi : "importance" = degré d'importance du conseil maintenant (entier 1 à 10), "closing_score" = estimation de la qualité globale du closing jusqu'ici (entier 0 à 10).
+Analyse la conversation EN COURS. Donne UN seul conseil, très court (1 phrase max), à lire en un coup d'œil, STRICTEMENT adapté au rôle de l'intervenant ci-dessus.
+Évalue aussi :
+- "importance" = degré d'importance du conseil maintenant (entier 1 à 10).
+- "closing_score" = qualité de CONVERSION/engagement (entier 0 à 10), pondérée AVANT TOUT par les RÉACTIONS DE LA PATIENTE (questions, objections, signaux d'achat, ton, implication) — PAS seulement par le respect du script idéal. Si la patiente se désengage (réponses courtes, évitement, réticence), baisse le score ; si elle s'implique (questions concrètes, projection, accord), monte-le.
 Réponds STRICTEMENT en JSON :
-{"step":"connecter|analyser|rassurer|engager|securiser","message":"<conseil 1 phrase>","importance":<1-10>,"closing_score":<0-10>}`,
+{"step":"connecter|analyser|rassurer|engager|securiser","message":"<conseil 1 phrase adapté au rôle>","importance":<1-10>,"closing_score":<0-10>}`,
     messages: [
       {
         role: "user",
