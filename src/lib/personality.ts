@@ -102,7 +102,12 @@ export const PERSONALITY_QUESTIONS: PersonalityQuestion[] = [
   {
     id: "q11",
     question: "Ton rôle principal au cabinet :",
-    options: ["Secrétaire", "Chirurgien", "Closeuse", "Infirmière (IDE)"],
+    options: [
+      "Secrétaire",
+      "Chirurgien",
+      "Responsable de programmation",
+      "Infirmière (IDE)",
+    ],
   },
   {
     id: "q12",
