@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { CARES_LABELS } from "@/lib/cares";
+import { formatDuration } from "@/lib/format";
 import type { CallRecord, CaresStep } from "@/lib/types";
 
 export function CallsTable({
@@ -206,6 +207,8 @@ Résumé patient :
                     </p>
                     <p className="text-xs text-slate-500">
                       {new Date(c.created_at).toLocaleString("fr-FR")}
+                      {" · ⏱ "}
+                      {formatDuration(c.start_time, c.end_time)}
                       {showOwner && <> · {userById.get(c.user_id) ?? "—"}</>}
                     </p>
                   </div>

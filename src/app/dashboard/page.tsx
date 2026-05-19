@@ -15,6 +15,7 @@ import { ResetRankingsButton } from "@/components/ResetRankingsButton";
 import { DashboardAlerts } from "@/components/DashboardAlerts";
 import { VersionUpdater } from "@/components/VersionUpdater";
 import { UserActivityPanel } from "@/components/UserActivityPanel";
+import { PerformanceTable } from "@/components/PerformanceTable";
 import type { AppUser, CallRecord, PerformanceTracking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -188,6 +189,12 @@ export default async function DashboardPage() {
               {isDelobaux && <ResetRankingsButton />}
             </div>
             <TeamLeaderboard team={team} />
+          </section>
+        )}
+
+        {isAdmin && (
+          <section>
+            <PerformanceTable />
           </section>
         )}
 
