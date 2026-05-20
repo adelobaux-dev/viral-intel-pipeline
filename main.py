@@ -58,32 +58,25 @@ def run_pipeline():
             if content_to_analyze:
                 print(f"Analyse basée sur {'la transcription' if transcript else 'la description'}...")
                 analysis = analyze_video(content_to_analyze, video['title'])
-                scripts = generate_scripts(analysis, video['title'])
-                
-                all_analyses.append(f"## {video['title']} ({channel['name']})\n\n{analysis}")
+                analysis_markdown = analysis.get("rawAnalysis", "")
+                scripts = generate_scripts(analysis_markdown, video['title'])
+
+                all_analyses.append(f"## {video['title']} ({channel['name']})\n\n{analysis_markdown}")
                 all_scripts.append(f"## Scripts pour {video['title']}\n\n{scripts}")
-                
+
                 # Synchroniser avec le dashboard
                 if sync:
-                    # Sauvegarder l'analyse
                     analysis_data = {
                         "title": video['title'],
                         "channel": channel['name'],
                         "videoId": video['video_id'],
                         "publishedAt": video['published_at'],
-                        "explain": analysis.get("explain", "") if isinstance(analysis, dict) else "",
-                        "visualize": analysis.get("visualize", "") if isinstance(analysis, dict) else "",
-                        "breakIntoChunks": analysis.get("breakIntoChunks", "") if isinstance(analysis, dict) else "",
-                        "patterns": analysis.get("patterns", "") if isinstance(analysis, dict) else "",
-                        "myths": analysis.get("myths", "") if isinstance(analysis, dict) else "",
-                        "challenges": analysis.get("challenges", "") if isinstance(analysis, dict) else "",
-                        "realLife": analysis.get("realLife", "") if isinstance(analysis, dict) else "",
-                        "teachBack": analysis.get("teachBack", "") if isinstance(analysis, dict) else "",
-                        "whyMatters": analysis.get("whyMatters", "") if isinstance(analysis, dict) else "",
-                        "simulate": analysis.get("simulate", "") if isinstance(analysis, dict) else "",
-                        "story": analysis.get("story", "") if isinstance(analysis, dict) else "",
-                        "prioritize": analysis.get("prioritize", "") if isinstance(analysis, dict) else "",
-                        "gaps": analysis.get("gaps", "") if isinstance(analysis, dict) else "",
+                        **{k: analysis.get(k, "") for k in (
+                            "explain", "visualize", "breakIntoChunks", "patterns",
+                            "myths", "challenges", "realLife", "teachBack",
+                            "whyMatters", "simulate", "story", "prioritize", "gaps",
+                        )},
+                        "rawAnalysis": analysis_markdown,
                     }
                     sync.save_analysis(analysis_data)
                     stats["totalAnalysesGenerated"] += 1
