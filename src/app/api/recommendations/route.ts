@@ -27,6 +27,9 @@ export async function GET(request: Request) {
     | import("@/lib/types").ConsultationMode
     | undefined;
   const patientName = (searchParams.get("patient") ?? "").trim();
+  const consultationType = (searchParams.get("type") ?? undefined) as
+    | import("@/lib/types").ConsultationType
+    | undefined;
   const recentLines = linesParam
     .split("\n")
     .map((l) => l.trim())
@@ -132,6 +135,7 @@ export async function GET(request: Request) {
           knowledge,
           mode,
           userProfile,
+          consultationType,
         );
         send("recommendation", rec);
       } catch (err) {

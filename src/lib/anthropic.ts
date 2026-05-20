@@ -4,8 +4,42 @@ import type {
   AiFeedback,
   CaresStep,
   ConsultationMode,
+  ConsultationType,
   Recommendation,
 } from "./types";
+
+/** Règles d'évaluation strictes par RÔLE — étanchéité chirurgien ≠ closer. */
+function roleRules(mode?: ConsultationMode): string {
+  switch (mode) {
+    case "chirurgien":
+      return `RÔLE = CHIRURGIEN. PÉRIMÈTRE EXCLUSIF : adhésion au projet, urgence du projet, expertise rassurante, transition vers la coordinatrice patients.
+INTERDITS pour ce rôle (NE JAMAIS reprocher leur absence) : discussion du prix/tarif, négociation, prépaiement 50€, dépôt 2000€, sécurisation financière, exploration budget. Ces étapes (= "Engager"/"Sécuriser") appartiennent EXCLUSIVEMENT à la coordinatrice/closer.
+À la place : terminer par une PASSATION claire à la coordinatrice (résumé projet, dates envisagées, prochaine étape).`;
+    case "closeuse":
+      return `RÔLE = COORDINATRICE PATIENTS. PÉRIMÈTRE : approfondir les "pains", valeur, lever objections prix, RECAP oral pré-clôture obligatoire, verrouiller le DÉPÔT de 2000€ (déduit du devis) et la date ferme. Le prépaiement 50€ est fait en amont par la secrétaire — ne pas le redemander.`;
+    case "secretaire":
+      return `RÔLE = SECRÉTAIRE. PÉRIMÈTRE : maximiser conversion lead → RDV, prépaiement 50€ (déduit du devis) NON-NÉGOCIABLE pour bloquer le créneau ; formulation type : "Pour sécuriser votre créneau qui part vite sur septembre/octobre, on bloque avec 50€ déduits du devis." L'absence de cette étape = PREMIÈRE alerte rouge.`;
+    case "ide":
+      return `RÔLE = INFIRMIÈRE (IDE). PÉRIMÈTRE : EMPATHIE + PÉDAGOGIE sur soins infirmiers et post-op, vérifier compréhension, sécuriser le suivi. PAS DE VENTE. Ne pas reprocher l'absence d'étapes commerciales.`;
+    default:
+      return "";
+  }
+}
+
+/** Règles selon le TYPE de consultation. */
+function typeRules(t?: ConsultationType): string {
+  switch (t) {
+    case "post-op":
+      return `TYPE = POST-OP / SUIVI. C.A.R.E.S. commerciale NON applicable. Évalue : qualité du suivi, empathie, clarté des consignes, sécurité du patient. PAS de score commercial.`;
+    case "qualification":
+      return `TYPE = QUALIFICATION. Objectif : qualifier l'intérêt et l'éligibilité, prendre un RDV. Pas de signature de devis attendue.`;
+    case "urgence":
+      return `TYPE = URGENCE. Priorité absolue à la sécurité et au triage. Pas d'évaluation commerciale.`;
+    case "primo":
+    default:
+      return `TYPE = PRIMO-CONSULTATION. Évaluation commerciale standard selon le rôle.`;
+  }
+}
 
 let _client: Anthropic | null = null;
 
@@ -36,6 +70,7 @@ export async function getLiveRecommendation(
   knowledge?: string,
   mode?: ConsultationMode,
   userProfile?: string,
+  consultationType?: ConsultationType,
 ): Promise<Recommendation> {
   const conversation = recentLines.join("\n");
 
@@ -45,8 +80,9 @@ export async function getLiveRecommendation(
 
   const obj = modeObjective(mode);
   const modeBlock = obj
-    ? `\n\n⚠️ PRIORITÉ ABSOLUE — RÔLE DE L'INTERVENANT : ${obj}\nChaque conseil que tu donnes DOIT servir directement cet objectif de rôle et être formulé pour CE rôle précis. Ne donne jamais un conseil générique : il doit être pertinent pour ce rôle, à ce moment.`
+    ? `\n\n⚠️ PRIORITÉ ABSOLUE — RÔLE DE L'INTERVENANT : ${obj}\nChaque conseil que tu donnes DOIT servir directement cet objectif de rôle et être formulé pour CE rôle précis. Ne donne jamais un conseil générique.`
     : "";
+  const rulesBlock = `\n\nRÈGLES DE PÉRIMÈTRE (à respecter strictement) :\n${roleRules(mode)}\n${typeRules(consultationType)}`;
 
   const profileBlock = userProfile?.trim()
     ? `\n\nPROFIL DE COMMUNICATION DE L'INTERVENANT — adapte le ton et le canal de tes conseils à CE profil :\n${userProfile.trim().slice(0, 1500)}`
@@ -55,9 +91,9 @@ export async function getLiveRecommendation(
   const response = await client().messages.create({
     model: MODEL,
     max_tokens: 300,
-    system: `${CABINET_CONTEXT}${modeBlock}${profileBlock}${knowledgeBlock}
+    system: `${CABINET_CONTEXT}${modeBlock}${rulesBlock}${profileBlock}${knowledgeBlock}
 
-Analyse la conversation EN COURS. Donne UN seul conseil, très court (1 phrase max), à lire en un coup d'œil, STRICTEMENT adapté au rôle de l'intervenant ci-dessus.
+Analyse la conversation EN COURS. Donne UN seul conseil, très court (1 phrase max), à lire en un coup d'œil, STRICTEMENT adapté au rôle ET au type de consultation ci-dessus.
 Évalue aussi :
 - "importance" = degré d'importance du conseil maintenant (entier 1 à 10).
 - "closing_score" = qualité de CONVERSION/engagement (entier 0 à 10), pondérée AVANT TOUT par les RÉACTIONS DE LA PATIENTE (questions, objections, signaux d'achat, ton, implication) — PAS seulement par le respect du script idéal. Si la patiente se désengage (réponses courtes, évitement, réticence), baisse le score ; si elle s'implique (questions concrètes, projection, accord), monte-le.
@@ -102,14 +138,17 @@ Réponds STRICTEMENT en JSON :
 export async function scoreCall(
   transcript: string,
   userProfile?: string,
+  mode?: ConsultationMode,
+  consultationType?: ConsultationType,
 ): Promise<AiFeedback> {
   const profileBlock = userProfile?.trim()
     ? `\n\nPROFIL DE COMMUNICATION DE L'INTERVENANT — formule le feedback de façon adaptée à CE profil (canal, ton), et cible les améliorations LES PLUS efficientes pour lui :\n${userProfile.trim().slice(0, 1500)}`
     : "";
+  const rulesBlock = `\n\nRÈGLES DE PÉRIMÈTRE — l'évaluation DOIT respecter ces règles :\n${roleRules(mode)}\n${typeRules(consultationType)}\n\nIMPORTANT : pour les critères HORS-PÉRIMÈTRE du rôle (ex. "securiser"/"engager" pour un chirurgien), mets 10/10 ("sans objet — hors périmètre") et NE LES MENTIONNE PAS comme axes d'amélioration. Évalue uniquement ce qui relève réellement de ce rôle et de ce type de consultation.`;
   const response = await client().messages.create({
     model: MODEL,
     max_tokens: 1500,
-    system: `${CABINET_CONTEXT}${profileBlock}
+    system: `${CABINET_CONTEXT}${profileBlock}${rulesBlock}
 
 Tu évalues un appel TERMINÉ. Note le respect du script C.A.R.E.S. et fournis un feedback constructif.
 Réponds STRICTEMENT en JSON :

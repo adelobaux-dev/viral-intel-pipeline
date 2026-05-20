@@ -20,6 +20,9 @@ export default function LiveCallPage() {
     isRecording,
     patientName,
     callId,
+    mode,
+    consultationType,
+    setConsultationType,
     setPatientName,
     startCall,
     stopCall,
@@ -92,6 +95,8 @@ export default function LiveCallPage() {
           patientName,
           transcript,
           patientEmail,
+          mode,
+          consultationType,
         }),
       });
       const data = await res.json();
@@ -140,6 +145,22 @@ export default function LiveCallPage() {
                 onChange={setPatientName}
                 disabled={busy}
               />
+              <select
+                className="input w-44"
+                value={consultationType}
+                onChange={(e) =>
+                  setConsultationType(
+                    e.target.value as typeof consultationType,
+                  )
+                }
+                disabled={busy}
+                title="Type de consultation (essentiel pour un scoring correct)"
+              >
+                <option value="primo">Primo-consultation</option>
+                <option value="post-op">Post-op / Suivi</option>
+                <option value="qualification">Qualification</option>
+                <option value="urgence">Urgence</option>
+              </select>
               <input
                 className="input w-52"
                 placeholder="Email patient (optionnel)"

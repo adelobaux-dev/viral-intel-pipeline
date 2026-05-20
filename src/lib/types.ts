@@ -6,6 +6,12 @@ export type ConsultationMode =
   | "closeuse"
   | "ide";
 
+export type ConsultationType =
+  | "primo"
+  | "post-op"
+  | "qualification"
+  | "urgence";
+
 export interface AppUser {
   id: string;
   email: string;

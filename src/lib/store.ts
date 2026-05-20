@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type {
   ConsultationMode,
+  ConsultationType,
   Recommendation,
   TranscriptLine,
 } from "./types";
@@ -10,6 +11,7 @@ import type {
 interface CallState {
   isRecording: boolean;
   patientName: string;
+  consultationType: ConsultationType;
   callId: string | null;
   startedAt: number | null;
   mode: ConsultationMode;
@@ -17,6 +19,7 @@ interface CallState {
   recommendations: Recommendation[];
 
   setMode: (mode: ConsultationMode) => void;
+  setConsultationType: (t: ConsultationType) => void;
   setPatientName: (name: string) => void;
   startCall: (callId: string) => void;
   stopCall: () => void;
@@ -47,8 +50,11 @@ export const useCallStore = create<CallState>((set) => ({
   callId: null,
   startedAt: null,
   mode: "closeuse",
+  consultationType: "primo",
   lines: [],
   recommendations: [],
+
+  setConsultationType: (consultationType) => set({ consultationType }),
 
   setMode: (mode) => {
     if (typeof window !== "undefined")

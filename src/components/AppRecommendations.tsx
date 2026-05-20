@@ -40,6 +40,7 @@ export function AppRecommendations() {
   const [error, setError] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
@@ -100,6 +101,25 @@ export function AppRecommendations() {
       window.localStorage.setItem(HIDE_KEY, JSON.stringify(Array.from(n)));
       return n;
     });
+  }
+  function toggleSelect(t: string) {
+    setSelected((p) => {
+      const n = new Set(p);
+      n.has(t) ? n.delete(t) : n.add(t);
+      return n;
+    });
+  }
+  function deleteSelection() {
+    if (selected.size === 0) return;
+    if (!window.confirm(`Supprimer ${selected.size} recommandation(s) ?`))
+      return;
+    setHidden((prev) => {
+      const n = new Set(prev);
+      selected.forEach((t) => n.add(t));
+      window.localStorage.setItem(HIDE_KEY, JSON.stringify(Array.from(n)));
+      return n;
+    });
+    setSelected(new Set());
   }
 
   async function load(force = false) {
@@ -166,6 +186,14 @@ export function AppRecommendations() {
           >
             <X className="h-3.5 w-3.5" /> Tout supprimer
           </button>
+          <button
+            onClick={deleteSelection}
+            disabled={selected.size === 0}
+            className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-40"
+          >
+            <X className="h-3.5 w-3.5" /> Supprimer la sélection
+            {selected.size > 0 && ` (${selected.size})`}
+          </button>
         </div>
       )}
       <p className="mb-3 text-xs text-slate-500">
@@ -205,6 +233,13 @@ export function AppRecommendations() {
                 key={i}
                 className="group flex items-start gap-2 rounded-md px-2 py-1 hover:bg-white"
               >
+                <input
+                  type="checkbox"
+                  checked={selected.has(l)}
+                  onChange={() => toggleSelect(l)}
+                  title="Sélectionner pour suppression"
+                  className="mt-1 h-3.5 w-3.5 rounded border-slate-300"
+                />
                 <button
                   onClick={() => check(l)}
                   title={`Valider (${c}/${ARCHIVE_THRESHOLD})`}

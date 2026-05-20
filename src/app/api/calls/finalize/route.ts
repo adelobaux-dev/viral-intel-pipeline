@@ -60,6 +60,8 @@ export async function POST(request: Request) {
     patientName?: string;
     transcript?: string;
     patientEmail?: string;
+    mode?: import("@/lib/types").ConsultationMode;
+    consultationType?: import("@/lib/types").ConsultationType;
   } | null;
 
   if (!body?.callId || !body.transcript?.trim()) {
@@ -100,7 +102,12 @@ export async function POST(request: Request) {
 
   let feedback: AiFeedback;
   try {
-    feedback = await scoreCall(body.transcript, userProfile);
+    feedback = await scoreCall(
+      body.transcript,
+      userProfile,
+      body.mode,
+      body.consultationType,
+    );
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Échec scoring IA" },

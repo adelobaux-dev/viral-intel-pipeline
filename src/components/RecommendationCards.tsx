@@ -92,7 +92,7 @@ export function RecommendationCards() {
 
       esRef.current?.close();
       const st = useCallStore.getState();
-      const url = `/api/recommendations?mode=${st.mode}&patient=${encodeURIComponent(
+      const url = `/api/recommendations?mode=${st.mode}&type=${st.consultationType}&patient=${encodeURIComponent(
         st.patientName || "",
       )}&lines=${encodeURIComponent(lines.join("\n"))}`;
       const es = new EventSource(url);
