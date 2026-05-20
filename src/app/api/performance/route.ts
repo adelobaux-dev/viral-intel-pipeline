@@ -44,7 +44,7 @@ export async function GET() {
   const { data: calls } = await admin
     .from("calls")
     .select(
-      "user_id, patient_name, start_time, end_time, score, created_at, transcript",
+      "id, user_id, patient_name, start_time, end_time, score, created_at, transcript",
     )
     .is("deleted_at", null)
     .not("score", "is", null)
@@ -52,6 +52,7 @@ export async function GET() {
     .limit(500);
 
   const all = (calls ?? []).map((c) => ({
+    id: c.id as string,
     date: c.created_at,
     user: nameById.get(c.user_id) ?? "—",
     patient: c.patient_name ?? "—",
@@ -137,6 +138,7 @@ export async function GET() {
   return NextResponse.json({
     rows: all
       .map((r) => ({
+        id: r.id,
         date: r.date,
         user: r.user,
         patient: r.patient,

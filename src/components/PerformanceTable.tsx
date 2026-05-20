@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, Loader2 } from "lucide-react";
+import { BarChart3, Loader2, Trash2 } from "lucide-react";
 import { formatDuration } from "@/lib/format";
 
 interface Row {
+  id: string;
   date: string;
   user: string;
   patient: string;
@@ -74,13 +75,77 @@ function corrText(c: number): string {
 export function PerformanceTable() {
   const [d, setD] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [canDelete, setCanDelete] = useState(false);
+
+  function toggle(id: string) {
+    setSelected((p) => {
+      const n = new Set(p);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  }
+  function toggleAll() {
+    const ids = (d?.rows ?? []).map((r) => r.id);
+    setSelected(
+      ids.length > 0 && selected.size === ids.length ? new Set() : new Set(ids),
+    );
+  }
+
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/performance");
+      const x = await res.json();
+      setD(x);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deleteSelected() {
+    if (selected.size === 0) return;
+    if (
+      !window.confirm(
+        `Supprimer ${selected.size} conversation(s) ? Le calcul de performance et la corrélation se feront sur les conversations restantes.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      const ids = Array.from(selected);
+      const results = await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/calls/${id}`, { method: "DELETE" }).then((r) => r.ok),
+        ),
+      );
+      if (results.some((ok) => !ok))
+        throw new Error("Certaines suppressions ont échoué (réservé à Dr Delobaux).");
+      setSelected(new Set());
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Échec de la suppression");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/performance")
+    load();
+    fetch("/api/me")
       .then((r) => r.json())
-      .then((x) => setD(x))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then((x) =>
+        setCanDelete(
+          ((x?.email as string | undefined) ?? "").toLowerCase().includes(
+            "delobaux",
+          ),
+        ),
+      )
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const maxBucket = Math.max(1, ...(d?.buckets.map((b) => b.count) ?? [1]));
@@ -267,10 +332,48 @@ export function PerformanceTable() {
         </>
       )}
 
+      {canDelete && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-600">
+            <input
+              type="checkbox"
+              checked={
+                (d?.rows.length ?? 0) > 0 &&
+                selected.size === (d?.rows.length ?? 0)
+              }
+              onChange={toggleAll}
+              className="h-4 w-4 rounded border-slate-300"
+            />
+            Tout cocher
+            {selected.size > 0 && (
+              <span className="text-slate-400">({selected.size})</span>
+            )}
+          </label>
+          <button
+            onClick={deleteSelected}
+            disabled={selected.size === 0 || busy}
+            className="inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-40"
+          >
+            {busy ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" />
+            )}
+            Supprimer les conversations sélectionnées
+          </button>
+        </div>
+      )}
+      {error && (
+        <p className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+          {error}
+        </p>
+      )}
+
       <div className="mt-4 max-h-80 overflow-y-scroll rounded-lg border border-slate-200">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
             <tr>
+              {canDelete && <th className="px-3 py-2"></th>}
               <th className="px-3 py-2">Date</th>
               <th className="px-3 py-2">Membre</th>
               <th className="px-3 py-2">Patient</th>
@@ -280,7 +383,17 @@ export function PerformanceTable() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {(d?.rows ?? []).map((r, i) => (
-              <tr key={i} className="hover:bg-slate-50">
+              <tr key={r.id ?? i} className="hover:bg-slate-50">
+                {canDelete && (
+                  <td className="px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.id)}
+                      onChange={() => toggle(r.id)}
+                      className="h-4 w-4 rounded border-slate-300"
+                    />
+                  </td>
+                )}
                 <td className="px-3 py-2 text-slate-600">
                   {new Date(r.date).toLocaleString("fr-FR")}
                 </td>
@@ -309,7 +422,10 @@ export function PerformanceTable() {
             ))}
             {!loading && (d?.rows.length ?? 0) === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-slate-400">
+                <td
+                  colSpan={canDelete ? 6 : 5}
+                  className="px-3 py-6 text-center text-slate-400"
+                >
                   Aucune conversation scorée.
                 </td>
               </tr>
