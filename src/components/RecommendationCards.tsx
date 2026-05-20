@@ -6,7 +6,7 @@ import { Lightbulb } from "lucide-react";
 import { useCallStore, loadMode } from "@/lib/store";
 import { CARES_LABELS, CONSULTATION_MODES, roleToMode } from "@/lib/cares";
 
-const POLL_MS = 10000;
+const POLL_MS = 7000;
 
 // Importance 1-10 : rouge 8-10, orange 5-7, jaune 1-4
 function importanceStyle(n: number): {
@@ -112,9 +112,21 @@ export function RecommendationCards() {
 
     poll();
     const id = setInterval(poll, POLL_MS);
+
+    // Poll IMMÉDIAT dès la 1re phrase transcrite (gain ~ 5-10 s).
+    let lastFinals = useCallStore.getState().lines.filter((l) => l.isFinal).length;
+    const unsub = useCallStore.subscribe((state) => {
+      const finals = state.lines.filter((l) => l.isFinal).length;
+      if (finals > lastFinals) {
+        lastFinals = finals;
+        if (state.recommendations.length === 0) poll();
+      }
+    });
+
     return () => {
       clearInterval(id);
       esRef.current?.close();
+      unsub();
     };
   }, [isRecording, addRecommendation]);
 

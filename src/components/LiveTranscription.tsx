@@ -141,12 +141,13 @@ export function LiveTranscription() {
     connect().then(() => recorder.start());
   }
 
-  // Auto-activation du micro à l'ouverture (si activé définitivement).
+  // Auto-activation du micro à l'ouverture, par défaut pour TOUS.
+  // L'utilisateur peut désactiver via le bouton ci-dessous (localStorage="0").
   useEffect(() => {
     if (
       !isRecording &&
       typeof window !== "undefined" &&
-      window.localStorage.getItem("mic.autostart") === "1" &&
+      window.localStorage.getItem("mic.autostart") !== "0" &&
       !recorder.isTesting
     ) {
       recorder.testMic();
@@ -162,16 +163,18 @@ export function LiveTranscription() {
     };
 
     if (isRecording) {
-      connect().then(() => recorder.start());
+      // Démarrage agressif : Deepgram + micro EN PARALLÈLE (gain ~1-2 s).
+      connect();
+      recorder.start();
 
-      // Watchdog : si après ~10 s la transcription n'a pas démarré
-      // (connexion non ouverte ou aucune phrase), on FORCE un redémarrage.
+      // Watchdog rapide : check toutes les 3 s, force restart si après 5 s
+      // la connexion n'est pas ouverte ou aucune phrase n'a été transcrite.
       clearWatchdog();
       watchdogRef.current = setInterval(() => {
         const st = useCallStore.getState();
         if (!st.isRecording) return;
         const elapsed = (Date.now() - (st.startedAt ?? Date.now())) / 1000;
-        if (elapsed < 10) return;
+        if (elapsed < 5) return;
         const open = connectionRef.current?.getReadyState() === 1;
         const hasLines = st.lines.some((l) => l.isFinal);
         if (!open || !hasLines) {
@@ -179,9 +182,10 @@ export function LiveTranscription() {
           retriesRef.current = 0;
           recorder.stop();
           teardown();
-          connect().then(() => recorder.start());
+          connect();
+          recorder.start();
         }
-      }, 10000);
+      }, 3000);
     } else {
       clearWatchdog();
       recorder.stop();
@@ -286,13 +290,19 @@ export function LiveTranscription() {
           <button
             type="button"
             onClick={() => {
-              window.localStorage.setItem("mic.autostart", "1");
-              if (!recorder.isTesting) recorder.testMic();
+              const off = window.localStorage.getItem("mic.autostart") === "0";
+              window.localStorage.setItem("mic.autostart", off ? "1" : "0");
+              if (off && !recorder.isTesting) recorder.testMic();
+              else if (!off) recorder.stopTest();
             }}
-            title="Active le micro automatiquement à chaque session (plus besoin de cliquer)"
+            title="Active/désactive l'auto-démarrage du micro à chaque session"
             className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
           >
-            <Mic className="h-3.5 w-3.5" /> Activer définitivement
+            <Mic className="h-3.5 w-3.5" />
+            {typeof window !== "undefined" &&
+            window.localStorage.getItem("mic.autostart") === "0"
+              ? "Activer l'auto-micro"
+              : "Auto-micro ON · cliquer pour désactiver"}
           </button>
         </div>
       )}
