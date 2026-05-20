@@ -97,6 +97,7 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+        <VersionUpdater />
         <DashboardAlerts />
         <header className="overflow-hidden rounded-2xl bg-gradient-to-br from-medical-800 via-medical-700 to-medical-900 px-7 py-6 text-white shadow-lg">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -113,6 +114,13 @@ export default async function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                title="Refaire le test de profil de communication"
+              >
+                Refaire mon profil
+              </Link>
               <Link
                 href="/live-call"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-medical-800 shadow-sm transition hover:bg-medical-50"
@@ -258,7 +266,6 @@ export default async function DashboardPage() {
         )}
 
         <div className="pt-2">
-          <VersionUpdater />
         </div>
       </div>
     </main>
