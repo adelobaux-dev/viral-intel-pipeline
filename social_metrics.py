@@ -45,10 +45,11 @@ DEFAULT_TARGETS = {
     "calls_done": 60,
     "closing_rate": 25,          # %
     "closing_rate_agen": 25,
-    "revenue_paris": 30000,
-    "revenue_agen": 20000,
-    "patients_paris": 60,
-    "procedures_done": 50,
+    "revenue_paris": 30000,      # CA signe mensuel closing (source_3)
+    "revenue_agen": 150000,       # CA realise annuel Agen (source_1)
+    "revenue_realized_paris": 2000000,  # CA realise annuel Paris (source_1)
+    "patients_paris": 200,
+    "procedures_done": 300,
     "satisfaction": 90,          # %
     "no_show_rate": 10,          # %, plus bas = mieux
     "team_activity_agen": 80,    # %
@@ -175,13 +176,16 @@ def collect_all():
     return payload
 
 
-def _kpi(name, value, targets):
+def _kpi(name, value, targets, scope=None):
     target = targets.get(name)
     color, ratio = tier(
         value, target, lower_is_better=name in LOWER_IS_BETTER
     )
-    return {"name": name, "value": value, "target": target,
-            "color": color, "ratio": ratio}
+    out = {"name": name, "value": value, "target": target,
+           "color": color, "ratio": ratio}
+    if scope:
+        out["scope"] = scope
+    return out
 
 
 def _build_kpis(payload, cfg):
@@ -215,28 +219,65 @@ def _build_kpis(payload, cfg):
         mois = (closing.get("closing") or {}).get("monthly") or {}
         acq = closing.get("acquisition") or {}
         leads = closing.get("leads") or {}
+        ops = closing.get("operations") or {}
+        paris = ops.get("paris") or {}
+        agen = ops.get("agen") or {}
 
-        derived = {}
-        if mois.get("closing_rate") is not None:
-            derived["closing_rate"] = mois["closing_rate"]
-        if mois.get("ca_signe") is not None:
-            derived["revenue_paris"] = mois["ca_signe"]
+        def add(name, value, scope):
+            if value is not None and name in targets:
+                kpis[name] = _kpi(name, value, targets, scope=scope)
+
+        # Closing global (source_3 mensuel)
+        add("closing_rate", mois.get("closing_rate"),
+            f"global {mois.get('period','')}")
+        add("closing_rate_agen", mois.get("closing_rate"),
+            f"global {mois.get('period','')}")
+        add("revenue_paris", mois.get("ca_signe"),
+            f"CA signe {mois.get('period','')} (global)")
+
+        # Acquisition (source_4 mensuel) - global
         if acq:
-            derived["calls_done"] = acq.get("appels_semaine")
-            c_ig = acq.get("contacts_ig") or 0
-            c_si = acq.get("contacts_site") or 0
-            derived["leads_paris"] = c_ig + c_si
-            r_ig = acq.get("rdv_pris_ig") or 0
-            r_si = acq.get("rdv_pris_site") or 0
-            derived["appointments_paris"] = r_ig + r_si
-            if acq.get("perf_appels") is not None:
-                derived["team_activity_agen"] = acq["perf_appels"]
-        if leads.get("monthly") is not None:
-            derived["messages_received"] = leads["monthly"]
+            add("calls_done", acq.get("appels_semaine"),
+                f"global {acq.get('period','')}")
+            add("leads_paris",
+                (acq.get("contacts_ig") or 0) + (acq.get("contacts_site") or 0),
+                f"global {acq.get('period','')}")
+            add("leads_agen",
+                (acq.get("contacts_ig") or 0) + (acq.get("contacts_site") or 0),
+                f"global {acq.get('period','')}")
+            add("appointments_paris",
+                (acq.get("rdv_pris_ig") or 0) + (acq.get("rdv_pris_site") or 0),
+                f"global {acq.get('period','')}")
+            add("appointments_agen",
+                (acq.get("rdv_pris_ig") or 0) + (acq.get("rdv_pris_site") or 0),
+                f"global {acq.get('period','')}")
+            add("team_activity_agen", acq.get("perf_appels"),
+                f"global {acq.get('period','')}")
 
-        for k, v in derived.items():
-            if v is not None and k in targets:
-                kpis[k] = _kpi(k, v, targets)
+        # Leads CRM (source_2) - fenetre glissante
+        if leads.get("monthly") is not None:
+            add("messages_received", leads["monthly"], "30 derniers jours")
+
+        # Operations chirurgicales par ville (source_1, cumul 2025)
+        if paris:
+            add("revenue_realized_paris", paris.get("revenue_realized"),
+                "Paris (CEPE+Alphand+Lille) - cumul 2025")
+            add("patients_paris", paris.get("patients"),
+                "Paris - cumul 2025")
+            add("no_show_rate", paris.get("no_show_rate"),
+                "Paris - cumul 2025")
+        if agen:
+            soins = closing.get("agen_soins") or {}
+            agen_total = (agen.get("revenue_realized") or 0) + (
+                soins.get("total_revenue") or 0)
+            scope_agen = ("Agen total : chirurgies (cumul) "
+                          f"{agen.get('revenue_realized',0):.0f}€ + "
+                          f"soins 2026 {soins.get('total_revenue',0):.0f}€")
+            add("revenue_agen", agen_total, scope_agen)
+        total_proc = (paris.get("procedures") or 0) + (
+            agen.get("procedures") or 0)
+        if total_proc:
+            add("procedures_done", total_proc, "global - cumul 2025")
 
         payload["business"] = {
             "data_period": {
@@ -245,10 +286,12 @@ def _build_kpis(payload, cfg):
                     "weekly", {}).get("period") if closing.get(
                     "closing") else None,
                 "acquisition_month": acq.get("period"),
+                "operations_scope": ops.get("scope"),
             },
-            "scope": "global (Paris/Agen non separes)",
+            "city_rule": ops.get("city_rule"),
             "raw": {"closing": closing.get("closing"),
-                    "acquisition": acq, "leads": leads},
+                    "acquisition": acq, "leads": leads,
+                    "operations": ops},
         }
 
     return kpis
@@ -329,9 +372,66 @@ def build_role_view(payload, role, members_cfg):
         "label": label,
         "is_admin": role == "ceo",
         "collected_at": payload["collected_at"],
+        "freshness": payload.get("freshness"),
         "kpis": selected,
         "recommendations": recos,
         "urgent_kpis": urgent,
+    }
+
+
+SOURCE_LABEL = {
+    "source_2_leads": "CRM leads",
+    "source_1_operations": "Bloc operatoire",
+    "source_3_closing": "Closing",
+    "source_4_acquisition": "Acquisition",
+    "soins_2026_agen": "Soins Agen 2026",
+}
+
+
+def _compute_freshness(payload):
+    """Date de la donnee la plus recente vue dans une sheet + score 0-100."""
+    sources = {}
+    closing = payload.get("closing") or {}
+    leads = closing.get("leads") or {}
+    if leads.get("latest_data_date"):
+        sources["source_2_leads"] = leads["latest_data_date"]
+    soins = closing.get("agen_soins") or {}
+    if soins.get("latest_data_date"):
+        sources["soins_2026_agen"] = soins["latest_data_date"]
+    ops = closing.get("operations") or {}
+    if ops.get("latest_data_date"):
+        sources["source_1_operations"] = ops["latest_data_date"]
+    cl = closing.get("closing") or {}
+    if cl.get("latest_data_date"):
+        sources["source_3_closing"] = cl["latest_data_date"]
+    acq = closing.get("acquisition") or {}
+    if acq.get("latest_data_date"):
+        sources["source_4_acquisition"] = acq["latest_data_date"]
+
+    if not sources:
+        return {"score": 0, "latest_date": None, "latest_source": None,
+                "days_since": None, "by_source": {}, "message": "Aucune donnee"}
+
+    latest_label, latest_iso = max(sources.items(), key=lambda kv: kv[1])
+    latest_dt = datetime.fromisoformat(latest_iso)
+    if latest_dt.tzinfo is None:
+        latest_dt = latest_dt.replace(tzinfo=timezone.utc)
+    days = (datetime.now(timezone.utc) - latest_dt).days
+    score = max(0, min(100, int(round(100 - days * (100 / 30)))))
+    label = SOURCE_LABEL.get(latest_label, latest_label)
+    message = (
+        f"Mis a jour le {payload['collected_at'][:10]} — "
+        f"derniere donnee dans {label} le {latest_iso[:10]} "
+        f"(il y a {days} j)"
+    )
+    return {
+        "score": score,
+        "latest_date": latest_iso,
+        "latest_source": latest_label,
+        "latest_source_label": label,
+        "days_since": days,
+        "by_source": sources,
+        "message": message,
     }
 
 
@@ -351,6 +451,8 @@ def run():
     cfg = _load_config()
     payload = collect_all()
     _persist_snapshot(payload)
+
+    payload["freshness"] = _compute_freshness(payload)
 
     members = cfg.get("roles", {}).get("members", {})
     payload["views_by_role"] = {

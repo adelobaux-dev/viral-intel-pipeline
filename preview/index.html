@@ -6,6 +6,11 @@
 background:linear-gradient(160deg,var(--bg),#1e1b4b 60%,#2e1065);color:var(--txt)}
 header{padding:22px 28px;background:rgba(10,14,40,.7);border-bottom:1px solid #2a2f55}
 header h1{margin:0;font-size:20px}.sub{color:#9aa3d4;font-size:13px;margin-top:4px}
+.fresh{margin-top:14px}.fresh-msg{font-size:13px;color:#cfd5ff;margin-bottom:6px}
+.fresh-bysrc{font-size:11px;color:#8b93c2;margin-top:6px}
+.bar{height:8px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.bar>span{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);
+transition:width .6s ease}.score{font-size:11px;color:#9aa3d4;margin-top:4px}
 nav{display:flex;flex-wrap:wrap;gap:8px;padding:16px 28px}
 nav button{background:linear-gradient(135deg,var(--ind),var(--vio));color:#fff;
 border:0;padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600}
@@ -26,15 +31,28 @@ border-radius:999px;margin-right:8px;text-transform:uppercase}
 .muted{color:#7d85b5}footer{padding:18px 28px;color:#7d85b5;font-size:12px}
 </style></head><body>
 <header><h1>Dashboard CEO — apercu des dashboards par role</h1>
-<div class="sub">Genere (2026-05-18T06:38:05.647951+00:00). Palette bleu profond /
+<div class="sub">Genere (2026-05-20T06:53:45.873360+00:00). Palette bleu profond /
 indigo / violet · couleurs par tiers (bleu=sur-perf → noir=critique).
-Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
+Les boutons ci-dessous = acces admin a chaque dashboard.</div>
+<div class="fresh">
+  <div class="fresh-msg">Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)</div>
+  <div class="bar"><span style="width:100%"></span></div>
+  <div class="score">Fraicheur des donnees : 100 / 100</div>
+  <div class="fresh-bysrc">CRM leads: 2026-05-20 · Soins Agen 2026: 2026-05-19 · Bloc operatoire: 2026-05-11 · Closing: 2026-05-04 · Acquisition: 2025-12-01</div>
+</div></header>
 <nav><button onclick="show('ceo')">CEO (admin)</button><button onclick="show('secretaire_paris')">Secretaire Paris</button><button onclick="show('secretaire_agen')">Secretaire Agen</button><button onclick="show('closer_paris')">Closer Paris</button><button onclick="show('infirmiere_paris')">Infirmiere Paris</button><button onclick="show('manager_agen')">Manager Agen</button></nav><main>
     <section class="role active" id="ceo">
       <h2>CEO</h2>
       <h3>KPIs</h3><div class="grid">
       <div class="card" style="border-left:6px solid #3b82f6">
         <div class="kname">closing rate</div>
+        <div class="kval">29.26</div>
+        <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">closing rate agen</div>
         <div class="kval">29.26</div>
         <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
@@ -61,11 +79,25 @@ Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
       </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">leads agen</div>
+        <div class="kval">134.0</div>
+        <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
       <div class="card" style="border-left:6px solid #22c55e">
         <div class="kname">appointments paris</div>
         <div class="kval">40.0</div>
         <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
           <span style="color:#22c55e;font-weight:700">VERT</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">appointments agen</div>
+        <div class="kval">40.0</div>
+        <div class="ktgt">objectif : 30 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
       </div>
       <div class="card" style="border-left:6px solid #3b82f6">
@@ -77,8 +109,43 @@ Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
       </div>
       <div class="card" style="border-left:6px solid #3b82f6">
         <div class="kname">messages received</div>
-        <div class="kval">158</div>
+        <div class="kval">167</div>
         <div class="ktgt">objectif : 100 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #22c55e">
+        <div class="kname">revenue realized paris</div>
+        <div class="kval">2276715.3</div>
+        <div class="ktgt">objectif : 2000000 &nbsp;|&nbsp;
+          <span style="color:#22c55e;font-weight:700">VERT</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">patients paris</div>
+        <div class="kval">260</div>
+        <div class="ktgt">objectif : 200 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">no show rate</div>
+        <div class="kval">5.62</div>
+        <div class="ktgt">objectif : 10 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">revenue agen</div>
+        <div class="kval">252887.9</div>
+        <div class="ktgt">objectif : 150000 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">procedures done</div>
+        <div class="kval">361</div>
+        <div class="ktgt">objectif : 300 &nbsp;|&nbsp;
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
       </div></div>
@@ -101,7 +168,7 @@ Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
       </div>
       <div class="card" style="border-left:6px solid #3b82f6">
         <div class="kname">messages received</div>
-        <div class="kval">158</div>
+        <div class="kval">167</div>
         <div class="ktgt">objectif : 100 &nbsp;|&nbsp;
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
@@ -113,8 +180,15 @@ Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
       <h2>Secretaire Agen</h2>
       <h3>KPIs</h3><div class="grid">
       <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">appointments agen</div>
+        <div class="kval">40.0</div>
+        <div class="ktgt">objectif : 30 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
         <div class="kname">messages received</div>
-        <div class="kval">158</div>
+        <div class="kval">167</div>
         <div class="ktgt">objectif : 100 &nbsp;|&nbsp;
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
@@ -162,7 +236,28 @@ Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
     </section>
     <section class="role " id="infirmiere_paris">
       <h2>Infirmiere Paris</h2>
-      <h3>KPIs</h3><div class="grid"><p class='muted'>Aucun KPI (brancher l'app de closing).</p></div>
+      <h3>KPIs</h3><div class="grid">
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">patients paris</div>
+        <div class="kval">260</div>
+        <div class="ktgt">objectif : 200 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">no show rate</div>
+        <div class="kval">5.62</div>
+        <div class="ktgt">objectif : 10 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">procedures done</div>
+        <div class="kval">361</div>
+        <div class="ktgt">objectif : 300 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div></div>
       <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
       <h3>Recommandations</h3><ul class="recos"><li class='muted'>Tout est au vert.</li></ul>
     </section>
@@ -170,9 +265,30 @@ Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
       <h2>Manager Agen</h2>
       <h3>KPIs</h3><div class="grid">
       <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">closing rate agen</div>
+        <div class="kval">29.26</div>
+        <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">leads agen</div>
+        <div class="kval">134.0</div>
+        <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
         <div class="kname">team activity agen</div>
         <div class="kval">100.0</div>
         <div class="ktgt">objectif : 80 &nbsp;|&nbsp;
+          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #3b82f6">
+        <div class="kname">revenue agen</div>
+        <div class="kval">252887.9</div>
+        <div class="ktgt">objectif : 150000 &nbsp;|&nbsp;
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
       </div></div>

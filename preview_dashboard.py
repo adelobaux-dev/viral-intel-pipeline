@@ -22,6 +22,14 @@ TIER_HEX = {
     "orange": "#f97316", "rouge": "#ef4444", "noir": "#0f172a",
 }
 
+SOURCE_HUMAN = {
+    "source_2_leads": "CRM leads",
+    "source_1_operations": "Bloc operatoire",
+    "source_3_closing": "Closing",
+    "source_4_acquisition": "Acquisition",
+    "soins_2026_agen": "Soins Agen 2026",
+}
+
 DEMO = {
     "instagram": {
         "source": "instagram", "ok": True, "followers": 7400,
@@ -120,6 +128,13 @@ def render():
     sections = "".join(
         _role_section(r, views[r], i == 0) for i, r in enumerate(order))
 
+    fresh = payload.get("freshness") or {}
+    score = fresh.get("score", 0)
+    fresh_msg = fresh.get("message", "Pas de donnees")
+    by_src = " · ".join(
+        f"{SOURCE_HUMAN.get(k, k)}: {v[:10]}"
+        for k, v in (fresh.get("by_source") or {}).items()
+    ) if fresh.get("by_source") else ""
     html = f"""<!doctype html><html lang="fr"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard CEO — apercu</title><style>
@@ -128,6 +143,11 @@ def render():
 background:linear-gradient(160deg,var(--bg),#1e1b4b 60%,#2e1065);color:var(--txt)}}
 header{{padding:22px 28px;background:rgba(10,14,40,.7);border-bottom:1px solid #2a2f55}}
 header h1{{margin:0;font-size:20px}}.sub{{color:#9aa3d4;font-size:13px;margin-top:4px}}
+.fresh{{margin-top:14px}}.fresh-msg{{font-size:13px;color:#cfd5ff;margin-bottom:6px}}
+.fresh-bysrc{{font-size:11px;color:#8b93c2;margin-top:6px}}
+.bar{{height:8px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}}
+.bar>span{{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);
+transition:width .6s ease}}.score{{font-size:11px;color:#9aa3d4;margin-top:4px}}
 nav{{display:flex;flex-wrap:wrap;gap:8px;padding:16px 28px}}
 nav button{{background:linear-gradient(135deg,var(--ind),var(--vio));color:#fff;
 border:0;padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600}}
@@ -150,7 +170,13 @@ border-radius:999px;margin-right:8px;text-transform:uppercase}}
 <header><h1>Dashboard CEO — apercu des dashboards par role</h1>
 <div class="sub">Genere ({payload['collected_at']}). Palette bleu profond /
 indigo / violet · couleurs par tiers (bleu=sur-perf → noir=critique).
-Les boutons ci-dessous = acces admin a chaque dashboard.</div></header>
+Les boutons ci-dessous = acces admin a chaque dashboard.</div>
+<div class="fresh">
+  <div class="fresh-msg">{fresh_msg}</div>
+  <div class="bar"><span style="width:{score}%"></span></div>
+  <div class="score">Fraicheur des donnees : {score} / 100</div>
+  <div class="fresh-bysrc">{by_src}</div>
+</div></header>
 <nav>{btns}</nav><main>{sections}</main>
 <footer>Apercu statique de reference. L'auth email + le rendu final
 vivent dans le repo du dashboard CEO ; les donnees viennent de

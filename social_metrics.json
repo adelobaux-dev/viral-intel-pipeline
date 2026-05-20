@@ -1,5 +1,5 @@
 {
-  "collected_at": "2026-05-18T06:38:05.647951+00:00",
+  "collected_at": "2026-05-20T06:53:45.873360+00:00",
   "instagram": {
     "source": "instagram",
     "ok": false,
@@ -8,7 +8,7 @@
   "youtube": {
     "source": "youtube_channel",
     "ok": false,
-    "error": "a configurer (cle API + handle)"
+    "error": "sandbox"
   },
   "closing": {
     "ok": true,
@@ -30,7 +30,8 @@
         "objectif_bas": 30000.0,
         "objectif_moyen": 40000.0,
         "objectif_haut": 50000.0
-      }
+      },
+      "latest_data_date": "2026-05-04T00:00:00+00:00"
     },
     "acquisition": {
       "period": "DECEMBRE",
@@ -46,22 +47,50 @@
       "rdv_cotes": 10.0,
       "avis_demandes": 6.0,
       "avis_recueillis": 0.0,
-      "followers_dm": 435.0
+      "followers_dm": 435.0,
+      "latest_data_date": "2025-12-01T00:00:00+00:00"
     },
     "leads": {
-      "total": 388,
-      "daily": 2,
-      "weekly": 31,
-      "monthly": 158
+      "total": 404,
+      "daily": 3,
+      "weekly": 29,
+      "monthly": 167,
+      "latest_data_date": "2026-05-20T00:00:00+00:00"
+    },
+    "operations": {
+      "paris": {
+        "procedures": 302,
+        "patients": 260,
+        "revenue_realized": 2276715.3,
+        "cancelled": 18,
+        "no_show_rate": 5.62
+      },
+      "agen": {
+        "procedures": 59,
+        "patients": 57,
+        "revenue_realized": 124642.0,
+        "cancelled": 3,
+        "no_show_rate": 4.84
+      },
+      "scope": "cumul 2025",
+      "city_rule": "Paris=CEPE+Alphand+Lille, Agen=AGEN",
+      "latest_data_date": "2026-05-11T00:00:00+00:00"
+    },
+    "agen_soins": {
+      "scope": "Agen - soins 2026 (esthetique)",
+      "total_revenue": 128245.9,
+      "soins_count": 988,
+      "latest_data_date": "2026-05-19T00:00:00+00:00"
     }
   },
   "business": {
     "data_period": {
       "closing_month": "Décembre",
       "closing_week": "Semaine 19",
-      "acquisition_month": "DECEMBRE"
+      "acquisition_month": "DECEMBRE",
+      "operations_scope": "cumul 2025"
     },
-    "scope": "global (Paris/Agen non separes)",
+    "city_rule": "Paris=CEPE+Alphand+Lille, Agen=AGEN",
     "raw": {
       "closing": {
         "monthly": {
@@ -80,7 +109,8 @@
           "objectif_bas": 30000.0,
           "objectif_moyen": 40000.0,
           "objectif_haut": 50000.0
-        }
+        },
+        "latest_data_date": "2026-05-04T00:00:00+00:00"
       },
       "acquisition": {
         "period": "DECEMBRE",
@@ -96,13 +126,34 @@
         "rdv_cotes": 10.0,
         "avis_demandes": 6.0,
         "avis_recueillis": 0.0,
-        "followers_dm": 435.0
+        "followers_dm": 435.0,
+        "latest_data_date": "2025-12-01T00:00:00+00:00"
       },
       "leads": {
-        "total": 388,
-        "daily": 2,
-        "weekly": 31,
-        "monthly": 158
+        "total": 404,
+        "daily": 3,
+        "weekly": 29,
+        "monthly": 167,
+        "latest_data_date": "2026-05-20T00:00:00+00:00"
+      },
+      "operations": {
+        "paris": {
+          "procedures": 302,
+          "patients": 260,
+          "revenue_realized": 2276715.3,
+          "cancelled": 18,
+          "no_show_rate": 5.62
+        },
+        "agen": {
+          "procedures": 59,
+          "patients": 57,
+          "revenue_realized": 124642.0,
+          "cancelled": 3,
+          "no_show_rate": 4.84
+        },
+        "scope": "cumul 2025",
+        "city_rule": "Paris=CEPE+Alphand+Lille, Agen=AGEN",
+        "latest_data_date": "2026-05-11T00:00:00+00:00"
       }
     }
   },
@@ -112,106 +163,278 @@
       "value": 29.26,
       "target": 25,
       "color": "bleu",
-      "ratio": 1.17
+      "ratio": 1.17,
+      "scope": "global Décembre"
+    },
+    "closing_rate_agen": {
+      "name": "closing_rate_agen",
+      "value": 29.26,
+      "target": 25,
+      "color": "bleu",
+      "ratio": 1.17,
+      "scope": "global Décembre"
     },
     "revenue_paris": {
       "name": "revenue_paris",
       "value": 343113.0,
       "target": 30000,
       "color": "bleu",
-      "ratio": 11.44
+      "ratio": 11.44,
+      "scope": "CA signe Décembre (global)"
     },
     "calls_done": {
       "name": "calls_done",
       "value": 24.0,
       "target": 60,
       "color": "rouge",
-      "ratio": 0.4
+      "ratio": 0.4,
+      "scope": "global DECEMBRE"
     },
     "leads_paris": {
       "name": "leads_paris",
       "value": 134.0,
       "target": 50,
       "color": "bleu",
-      "ratio": 2.68
+      "ratio": 2.68,
+      "scope": "global DECEMBRE"
+    },
+    "leads_agen": {
+      "name": "leads_agen",
+      "value": 134.0,
+      "target": 40,
+      "color": "bleu",
+      "ratio": 3.35,
+      "scope": "global DECEMBRE"
     },
     "appointments_paris": {
       "name": "appointments_paris",
       "value": 40.0,
       "target": 40,
       "color": "vert",
-      "ratio": 1.0
+      "ratio": 1.0,
+      "scope": "global DECEMBRE"
+    },
+    "appointments_agen": {
+      "name": "appointments_agen",
+      "value": 40.0,
+      "target": 30,
+      "color": "bleu",
+      "ratio": 1.33,
+      "scope": "global DECEMBRE"
     },
     "team_activity_agen": {
       "name": "team_activity_agen",
       "value": 100.0,
       "target": 80,
       "color": "bleu",
-      "ratio": 1.25
+      "ratio": 1.25,
+      "scope": "global DECEMBRE"
     },
     "messages_received": {
       "name": "messages_received",
-      "value": 158,
+      "value": 167,
       "target": 100,
       "color": "bleu",
-      "ratio": 1.58
+      "ratio": 1.67,
+      "scope": "30 derniers jours"
+    },
+    "revenue_realized_paris": {
+      "name": "revenue_realized_paris",
+      "value": 2276715.3,
+      "target": 2000000,
+      "color": "vert",
+      "ratio": 1.14,
+      "scope": "Paris (CEPE+Alphand+Lille) - cumul 2025"
+    },
+    "patients_paris": {
+      "name": "patients_paris",
+      "value": 260,
+      "target": 200,
+      "color": "bleu",
+      "ratio": 1.3,
+      "scope": "Paris - cumul 2025"
+    },
+    "no_show_rate": {
+      "name": "no_show_rate",
+      "value": 5.62,
+      "target": 10,
+      "color": "bleu",
+      "ratio": 1.78,
+      "scope": "Paris - cumul 2025"
+    },
+    "revenue_agen": {
+      "name": "revenue_agen",
+      "value": 252887.9,
+      "target": 150000,
+      "color": "bleu",
+      "ratio": 1.69,
+      "scope": "Agen total : chirurgies (cumul) 124642€ + soins 2026 128246€"
+    },
+    "procedures_done": {
+      "name": "procedures_done",
+      "value": 361,
+      "target": 300,
+      "color": "bleu",
+      "ratio": 1.2,
+      "scope": "global - cumul 2025"
     }
+  },
+  "freshness": {
+    "score": 100,
+    "latest_date": "2026-05-20T00:00:00+00:00",
+    "latest_source": "source_2_leads",
+    "latest_source_label": "CRM leads",
+    "days_since": 0,
+    "by_source": {
+      "source_2_leads": "2026-05-20T00:00:00+00:00",
+      "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+      "source_1_operations": "2026-05-11T00:00:00+00:00",
+      "source_3_closing": "2026-05-04T00:00:00+00:00",
+      "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+    },
+    "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
   },
   "views_by_role": {
     "ceo": {
       "role": "ceo",
       "label": "CEO",
       "is_admin": true,
-      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "collected_at": "2026-05-20T06:53:45.873360+00:00",
+      "freshness": {
+        "score": 100,
+        "latest_date": "2026-05-20T00:00:00+00:00",
+        "latest_source": "source_2_leads",
+        "latest_source_label": "CRM leads",
+        "days_since": 0,
+        "by_source": {
+          "source_2_leads": "2026-05-20T00:00:00+00:00",
+          "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+          "source_1_operations": "2026-05-11T00:00:00+00:00",
+          "source_3_closing": "2026-05-04T00:00:00+00:00",
+          "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+        },
+        "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
+      },
       "kpis": {
         "closing_rate": {
           "name": "closing_rate",
           "value": 29.26,
           "target": 25,
           "color": "bleu",
-          "ratio": 1.17
+          "ratio": 1.17,
+          "scope": "global Décembre"
+        },
+        "closing_rate_agen": {
+          "name": "closing_rate_agen",
+          "value": 29.26,
+          "target": 25,
+          "color": "bleu",
+          "ratio": 1.17,
+          "scope": "global Décembre"
         },
         "revenue_paris": {
           "name": "revenue_paris",
           "value": 343113.0,
           "target": 30000,
           "color": "bleu",
-          "ratio": 11.44
+          "ratio": 11.44,
+          "scope": "CA signe Décembre (global)"
         },
         "calls_done": {
           "name": "calls_done",
           "value": 24.0,
           "target": 60,
           "color": "rouge",
-          "ratio": 0.4
+          "ratio": 0.4,
+          "scope": "global DECEMBRE"
         },
         "leads_paris": {
           "name": "leads_paris",
           "value": 134.0,
           "target": 50,
           "color": "bleu",
-          "ratio": 2.68
+          "ratio": 2.68,
+          "scope": "global DECEMBRE"
+        },
+        "leads_agen": {
+          "name": "leads_agen",
+          "value": 134.0,
+          "target": 40,
+          "color": "bleu",
+          "ratio": 3.35,
+          "scope": "global DECEMBRE"
         },
         "appointments_paris": {
           "name": "appointments_paris",
           "value": 40.0,
           "target": 40,
           "color": "vert",
-          "ratio": 1.0
+          "ratio": 1.0,
+          "scope": "global DECEMBRE"
+        },
+        "appointments_agen": {
+          "name": "appointments_agen",
+          "value": 40.0,
+          "target": 30,
+          "color": "bleu",
+          "ratio": 1.33,
+          "scope": "global DECEMBRE"
         },
         "team_activity_agen": {
           "name": "team_activity_agen",
           "value": 100.0,
           "target": 80,
           "color": "bleu",
-          "ratio": 1.25
+          "ratio": 1.25,
+          "scope": "global DECEMBRE"
         },
         "messages_received": {
           "name": "messages_received",
-          "value": 158,
+          "value": 167,
           "target": 100,
           "color": "bleu",
-          "ratio": 1.58
+          "ratio": 1.67,
+          "scope": "30 derniers jours"
+        },
+        "revenue_realized_paris": {
+          "name": "revenue_realized_paris",
+          "value": 2276715.3,
+          "target": 2000000,
+          "color": "vert",
+          "ratio": 1.14,
+          "scope": "Paris (CEPE+Alphand+Lille) - cumul 2025"
+        },
+        "patients_paris": {
+          "name": "patients_paris",
+          "value": 260,
+          "target": 200,
+          "color": "bleu",
+          "ratio": 1.3,
+          "scope": "Paris - cumul 2025"
+        },
+        "no_show_rate": {
+          "name": "no_show_rate",
+          "value": 5.62,
+          "target": 10,
+          "color": "bleu",
+          "ratio": 1.78,
+          "scope": "Paris - cumul 2025"
+        },
+        "revenue_agen": {
+          "name": "revenue_agen",
+          "value": 252887.9,
+          "target": 150000,
+          "color": "bleu",
+          "ratio": 1.69,
+          "scope": "Agen total : chirurgies (cumul) 124642€ + soins 2026 128246€"
+        },
+        "procedures_done": {
+          "name": "procedures_done",
+          "value": 361,
+          "target": 300,
+          "color": "bleu",
+          "ratio": 1.2,
+          "scope": "global - cumul 2025"
         }
       },
       "recommendations": [
@@ -239,21 +462,38 @@
       "role": "secretaire_paris",
       "label": "Secretaire Paris",
       "is_admin": false,
-      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "collected_at": "2026-05-20T06:53:45.873360+00:00",
+      "freshness": {
+        "score": 100,
+        "latest_date": "2026-05-20T00:00:00+00:00",
+        "latest_source": "source_2_leads",
+        "latest_source_label": "CRM leads",
+        "days_since": 0,
+        "by_source": {
+          "source_2_leads": "2026-05-20T00:00:00+00:00",
+          "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+          "source_1_operations": "2026-05-11T00:00:00+00:00",
+          "source_3_closing": "2026-05-04T00:00:00+00:00",
+          "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+        },
+        "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
+      },
       "kpis": {
         "appointments_paris": {
           "name": "appointments_paris",
           "value": 40.0,
           "target": 40,
           "color": "vert",
-          "ratio": 1.0
+          "ratio": 1.0,
+          "scope": "global DECEMBRE"
         },
         "messages_received": {
           "name": "messages_received",
-          "value": 158,
+          "value": 167,
           "target": 100,
           "color": "bleu",
-          "ratio": 1.58
+          "ratio": 1.67,
+          "scope": "30 derniers jours"
         }
       },
       "recommendations": [],
@@ -263,14 +503,38 @@
       "role": "secretaire_agen",
       "label": "Secretaire Agen",
       "is_admin": false,
-      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "collected_at": "2026-05-20T06:53:45.873360+00:00",
+      "freshness": {
+        "score": 100,
+        "latest_date": "2026-05-20T00:00:00+00:00",
+        "latest_source": "source_2_leads",
+        "latest_source_label": "CRM leads",
+        "days_since": 0,
+        "by_source": {
+          "source_2_leads": "2026-05-20T00:00:00+00:00",
+          "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+          "source_1_operations": "2026-05-11T00:00:00+00:00",
+          "source_3_closing": "2026-05-04T00:00:00+00:00",
+          "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+        },
+        "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
+      },
       "kpis": {
+        "appointments_agen": {
+          "name": "appointments_agen",
+          "value": 40.0,
+          "target": 30,
+          "color": "bleu",
+          "ratio": 1.33,
+          "scope": "global DECEMBRE"
+        },
         "messages_received": {
           "name": "messages_received",
-          "value": 158,
+          "value": 167,
           "target": 100,
           "color": "bleu",
-          "ratio": 1.58
+          "ratio": 1.67,
+          "scope": "30 derniers jours"
         }
       },
       "recommendations": [],
@@ -280,35 +544,54 @@
       "role": "closer_paris",
       "label": "Closer Paris",
       "is_admin": false,
-      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "collected_at": "2026-05-20T06:53:45.873360+00:00",
+      "freshness": {
+        "score": 100,
+        "latest_date": "2026-05-20T00:00:00+00:00",
+        "latest_source": "source_2_leads",
+        "latest_source_label": "CRM leads",
+        "days_since": 0,
+        "by_source": {
+          "source_2_leads": "2026-05-20T00:00:00+00:00",
+          "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+          "source_1_operations": "2026-05-11T00:00:00+00:00",
+          "source_3_closing": "2026-05-04T00:00:00+00:00",
+          "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+        },
+        "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
+      },
       "kpis": {
         "closing_rate": {
           "name": "closing_rate",
           "value": 29.26,
           "target": 25,
           "color": "bleu",
-          "ratio": 1.17
+          "ratio": 1.17,
+          "scope": "global Décembre"
         },
         "revenue_paris": {
           "name": "revenue_paris",
           "value": 343113.0,
           "target": 30000,
           "color": "bleu",
-          "ratio": 11.44
+          "ratio": 11.44,
+          "scope": "CA signe Décembre (global)"
         },
         "calls_done": {
           "name": "calls_done",
           "value": 24.0,
           "target": 60,
           "color": "rouge",
-          "ratio": 0.4
+          "ratio": 0.4,
+          "scope": "global DECEMBRE"
         },
         "leads_paris": {
           "name": "leads_paris",
           "value": 134.0,
           "target": 50,
           "color": "bleu",
-          "ratio": 2.68
+          "ratio": 2.68,
+          "scope": "global DECEMBRE"
         }
       },
       "recommendations": [
@@ -336,8 +619,48 @@
       "role": "infirmiere_paris",
       "label": "Infirmiere Paris",
       "is_admin": false,
-      "collected_at": "2026-05-18T06:38:05.647951+00:00",
-      "kpis": {},
+      "collected_at": "2026-05-20T06:53:45.873360+00:00",
+      "freshness": {
+        "score": 100,
+        "latest_date": "2026-05-20T00:00:00+00:00",
+        "latest_source": "source_2_leads",
+        "latest_source_label": "CRM leads",
+        "days_since": 0,
+        "by_source": {
+          "source_2_leads": "2026-05-20T00:00:00+00:00",
+          "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+          "source_1_operations": "2026-05-11T00:00:00+00:00",
+          "source_3_closing": "2026-05-04T00:00:00+00:00",
+          "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+        },
+        "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
+      },
+      "kpis": {
+        "patients_paris": {
+          "name": "patients_paris",
+          "value": 260,
+          "target": 200,
+          "color": "bleu",
+          "ratio": 1.3,
+          "scope": "Paris - cumul 2025"
+        },
+        "no_show_rate": {
+          "name": "no_show_rate",
+          "value": 5.62,
+          "target": 10,
+          "color": "bleu",
+          "ratio": 1.78,
+          "scope": "Paris - cumul 2025"
+        },
+        "procedures_done": {
+          "name": "procedures_done",
+          "value": 361,
+          "target": 300,
+          "color": "bleu",
+          "ratio": 1.2,
+          "scope": "global - cumul 2025"
+        }
+      },
       "recommendations": [],
       "urgent_kpis": []
     },
@@ -345,14 +668,54 @@
       "role": "manager_agen",
       "label": "Manager Agen",
       "is_admin": false,
-      "collected_at": "2026-05-18T06:38:05.647951+00:00",
+      "collected_at": "2026-05-20T06:53:45.873360+00:00",
+      "freshness": {
+        "score": 100,
+        "latest_date": "2026-05-20T00:00:00+00:00",
+        "latest_source": "source_2_leads",
+        "latest_source_label": "CRM leads",
+        "days_since": 0,
+        "by_source": {
+          "source_2_leads": "2026-05-20T00:00:00+00:00",
+          "soins_2026_agen": "2026-05-19T00:00:00+00:00",
+          "source_1_operations": "2026-05-11T00:00:00+00:00",
+          "source_3_closing": "2026-05-04T00:00:00+00:00",
+          "source_4_acquisition": "2025-12-01T00:00:00+00:00"
+        },
+        "message": "Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)"
+      },
       "kpis": {
+        "closing_rate_agen": {
+          "name": "closing_rate_agen",
+          "value": 29.26,
+          "target": 25,
+          "color": "bleu",
+          "ratio": 1.17,
+          "scope": "global Décembre"
+        },
+        "leads_agen": {
+          "name": "leads_agen",
+          "value": 134.0,
+          "target": 40,
+          "color": "bleu",
+          "ratio": 3.35,
+          "scope": "global DECEMBRE"
+        },
         "team_activity_agen": {
           "name": "team_activity_agen",
           "value": 100.0,
           "target": 80,
           "color": "bleu",
-          "ratio": 1.25
+          "ratio": 1.25,
+          "scope": "global DECEMBRE"
+        },
+        "revenue_agen": {
+          "name": "revenue_agen",
+          "value": 252887.9,
+          "target": 150000,
+          "color": "bleu",
+          "ratio": 1.69,
+          "scope": "Agen total : chirurgies (cumul) 124642€ + soins 2026 128246€"
         }
       },
       "recommendations": [],
