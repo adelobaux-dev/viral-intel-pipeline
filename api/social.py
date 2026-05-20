@@ -1,22 +1,28 @@
-"""Endpoint serverless Vercel : metriques sociales filtrees par role.
+"""Endpoint serverless Vercel : metriques par role, calculees a la volee.
+
+Strategie : a chaque requete, on collecte directement depuis Google Sheets
+(et IG/YT quand configures), avec un cache memoire de 60 s pour ne pas
+marteler les sources. Aucun GitHub Actions / commit n'est requis : modifier
+une cellule -> dashboard a jour au prochain chargement (max 60 s de retard).
 
 Frontiere de securite : ce service NE fait PAS le login. Le dashboard CEO
-authentifie l'utilisateur par email (sa responsabilite), puis appelle cette
-API avec :
+authentifie l'utilisateur par email, puis appelle cette API avec :
   - header  X-API-Token : doit valoir DASHBOARD_API_TOKEN (env Vercel)
   - query   email       : email de l'utilisateur deja authentifie
-  - query   as_role      : (admin uniquement) consulter le dashboard d'un role
+  - query   as_role     : (admin uniquement) consulter un autre dashboard
+  - query   fresh=1     : forcer le bypass du cache 60 s
 
 Reponses :
-  200 -> vue du role (KPIs + recommandations + KPIs urgents)
+  200 -> vue du role (KPIs + recommandations + KPIs urgents + freshness)
   401 -> token API invalide
   403 -> email non autorise / as_role refuse (non admin)
-  503 -> donnees pas encore generees (lancer social_metrics.run())
+  503 -> sources indisponibles (Sheets HS et pas de cache)
 """
 
 import json
 import os
 import sys
+import time
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -26,7 +32,9 @@ ROOT = os.path.dirname(os.path.dirname(__file__))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 CONFIG_PATH = os.path.join(ROOT, "config.yaml")
-DATA_PATH = os.path.join(ROOT, "social_metrics.json")
+
+CACHE_TTL_SECONDS = 60
+_CACHE = {"ts": 0.0, "payload": None}
 
 
 def _load_config():
@@ -34,23 +42,23 @@ def _load_config():
         return yaml.safe_load(f)
 
 
-def _load_data(cfg):
-    """Source des metriques : fichier local sinon snapshot Google Sheets."""
+def _get_payload(fresh=False):
+    """Recalcule a la volee, met en cache 60 s, retombe sur le cache si KO."""
+    now = time.time()
+    if (not fresh and _CACHE["payload"]
+            and now - _CACHE["ts"] < CACHE_TTL_SECONDS):
+        return _CACHE["payload"], "cache"
     try:
-        with open(DATA_PATH, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        pass
-    sheets_cfg = cfg.get("sheets", {})
-    if sheets_cfg.get("enabled") and sheets_cfg.get("spreadsheet_id"):
-        try:
-            import sheets_publisher
+        import social_metrics
 
-            return sheets_publisher.read_snapshot(
-                sheets_cfg["spreadsheet_id"])
-        except Exception:
-            return None
-    return None
+        payload = social_metrics.live_collect()
+        _CACHE["payload"] = payload
+        _CACHE["ts"] = now
+        return payload, "live"
+    except Exception as exc:
+        if _CACHE["payload"]:
+            return _CACHE["payload"], f"stale-cache ({exc})"
+        return None, str(exc)
 
 
 def _resolve_roles(email, cfg):
@@ -122,12 +130,12 @@ class handler(BaseHTTPRequestHandler):
             matched = [as_role]
             is_admin = False
 
-        data = _load_data(cfg)
+        fresh = qs.get("fresh", ["0"])[0] in ("1", "true", "yes")
+        data, source_info = _get_payload(fresh=fresh)
         if data is None:
             return self._send(503, {
-                "error": "metriques non generees",
-                "hint": "lancer le pipeline (python social_metrics.py) "
-                        "ou configurer sheets.spreadsheet_id",
+                "error": "sources indisponibles",
+                "detail": source_info,
             })
 
         views_by_role = data.get("views_by_role", {})
@@ -136,8 +144,9 @@ class handler(BaseHTTPRequestHandler):
             return self._send(403, {"error": f"role inconnu: {matched}"})
 
         view = _merge_views(views)
+        view = dict(view)
+        view["data_source"] = source_info
         if is_admin:
-            view = dict(view)
             view["available_role_dashboards"] = [
                 {"role": r, "label": rc.get("label", r)}
                 for r, rc in cfg.get("roles", {}).get("members", {}).items()

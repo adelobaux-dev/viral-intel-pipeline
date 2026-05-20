@@ -45,9 +45,15 @@ DEFAULT_TARGETS = {
     "calls_done": 60,
     "closing_rate": 25,          # %
     "closing_rate_agen": 25,
-    "revenue_paris": 30000,      # CA signe mensuel closing (source_3)
-    "revenue_agen": 150000,       # CA realise annuel Agen (source_1)
-    "revenue_realized_paris": 2000000,  # CA realise annuel Paris (source_1)
+    "revenue_paris": 1000000,    # CA signe (rouge) Paris source_1
+    "revenue_agen": 150000,       # CA total Agen (signe + encaisse + soins)
+    "revenue_encaisse_paris": 2000000,
+    "revenue_attente_daf_paris": 200000,
+    "revenue_total_paris": 3000000,
+    "revenue_encaisse_agen": 200000,
+    "revenue_signe_agen": 100000,
+    "revenue_attente_daf_agen": 50000,
+    "revenue_total_agen": 350000,
     "patients_paris": 200,
     "procedures_done": 300,
     "satisfaction": 90,          # %
@@ -142,6 +148,27 @@ def _fetch_closing(cfg):
     }
 
 
+def live_collect():
+    """Collecte + vues par role calculees a la volee (utilise par l'API).
+
+    Aucune ecriture disque, aucun appel a Sheets en ecriture : la fonction
+    serverless appelle cette methode a chaque requete (cachee 60 s cote
+    API) pour servir des donnees fraiches sans dependance a GitHub.
+    """
+    cfg = _load_config()
+    payload = collect_all()
+    payload["freshness"] = _compute_freshness(payload)
+
+    members = cfg.get("roles", {}).get("members", {})
+    payload["views_by_role"] = {
+        "ceo": build_role_view(payload, "ceo", members)
+    }
+    for role in members:
+        payload["views_by_role"][role] = build_role_view(
+            payload, role, members)
+    return payload
+
+
 def collect_all():
     cfg = _load_config()
     payload = {
@@ -227,13 +254,11 @@ def _build_kpis(payload, cfg):
             if value is not None and name in targets:
                 kpis[name] = _kpi(name, value, targets, scope=scope)
 
-        # Closing global (source_3 mensuel)
+        # Closing global (source_3 mensuel) - taux de closing
         add("closing_rate", mois.get("closing_rate"),
             f"global {mois.get('period','')}")
         add("closing_rate_agen", mois.get("closing_rate"),
             f"global {mois.get('period','')}")
-        add("revenue_paris", mois.get("ca_signe"),
-            f"CA signe {mois.get('period','')} (global)")
 
         # Acquisition (source_4 mensuel) - global
         if acq:
@@ -258,26 +283,53 @@ def _build_kpis(payload, cfg):
         if leads.get("monthly") is not None:
             add("messages_received", leads["monthly"], "30 derniers jours")
 
-        # Operations chirurgicales par ville (source_1, cumul 2025)
+        # Operations chirurgicales par ville (source_1, cumul 2025) :
+        # patients, no-show, comptage.
         if paris:
-            add("revenue_realized_paris", paris.get("revenue_realized"),
-                "Paris (CEPE+Alphand+Lille) - cumul 2025")
             add("patients_paris", paris.get("patients"),
                 "Paris - cumul 2025")
             add("no_show_rate", paris.get("no_show_rate"),
                 "Paris - cumul 2025")
-        if agen:
-            soins = closing.get("agen_soins") or {}
-            agen_total = (agen.get("revenue_realized") or 0) + (
-                soins.get("total_revenue") or 0)
-            scope_agen = ("Agen total : chirurgies (cumul) "
-                          f"{agen.get('revenue_realized',0):.0f}€ + "
-                          f"soins 2026 {soins.get('total_revenue',0):.0f}€")
-            add("revenue_agen", agen_total, scope_agen)
         total_proc = (paris.get("procedures") or 0) + (
             agen.get("procedures") or 0)
         if total_proc:
             add("procedures_done", total_proc, "global - cumul 2025")
+
+        # CA detaille par couleur (source_1 gid=0 via API Sheets) :
+        #   vert  = encaisse  |  rouge = signe  |  jaune = attente DAF
+        bd = closing.get("revenue_breakdown") or {}
+        soins = closing.get("agen_soins") or {}
+        if bd.get("available"):
+            bp, ba = bd.get("paris") or {}, bd.get("agen") or {}
+            # Paris : revenue_paris reflete le CA signe (instruction CEO)
+            add("revenue_paris", bp.get("signe"),
+                "Paris - CA signe (cellules rouges) source_1")
+            add("revenue_encaisse_paris", bp.get("encaisse"),
+                "Paris - CA encaisse (cellules vertes) source_1")
+            add("revenue_attente_daf_paris", bp.get("attente_daf"),
+                "Paris - encaisse theorique attente validation DAF (jaune)")
+            add("revenue_total_paris", bp.get("total"),
+                "Paris - total (encaisse + signe + attente DAF)")
+            # Agen : encaisse = vert source_1 + soins 2026 ; total inclut tout
+            agen_encaisse = (ba.get("encaisse") or 0) + (
+                soins.get("total_revenue") or 0)
+            add("revenue_encaisse_agen", agen_encaisse,
+                f"Agen - CA encaisse (vert {ba.get('encaisse',0):.0f}€ + "
+                f"soins 2026 {soins.get('total_revenue',0):.0f}€)")
+            add("revenue_signe_agen", ba.get("signe"),
+                "Agen - CA signe (cellules rouges) source_1")
+            add("revenue_attente_daf_agen", ba.get("attente_daf"),
+                "Agen - encaisse theorique attente validation DAF (jaune)")
+            agen_total = agen_encaisse + (ba.get("signe") or 0) + (
+                ba.get("attente_daf") or 0)
+            add("revenue_total_agen", agen_total, "Agen - total tous etats")
+            add("revenue_agen", agen_total, "Agen - total tous etats")
+        elif agen:
+            # Fallback color-blind (pas de service account / API Sheets KO).
+            agen_fallback = (agen.get("revenue_realized") or 0) + (
+                soins.get("total_revenue") or 0)
+            add("revenue_agen", agen_fallback,
+                "Agen - cumul couleur-aveugle (service account indispo)")
 
         payload["business"] = {
             "data_period": {
@@ -330,8 +382,14 @@ def _action_for(name, color):
         "calls_done": "Bloquer 2 creneaux d'appels supplementaires/jour.",
         "closing_rate": "Revoir le script de closing + objections.",
         "closing_rate_agen": "Coaching closing equipe Agen.",
-        "revenue_paris": "Pousser les offres premium sur les leads Paris.",
-        "revenue_agen": "Pousser les offres premium sur les leads Agen.",
+        "revenue_paris": "CA signe Paris faible -> relancer les devis ouverts.",
+        "revenue_agen": "CA total Agen sous l'objectif -> pousser premium.",
+        "revenue_encaisse_paris": "Accelerer les encaissements Paris (relances DAF).",
+        "revenue_signe_agen": "Pousser les signatures Agen (closing).",
+        "revenue_attente_daf_paris": "Boucler la validation DAF des dossiers en attente.",
+        "revenue_attente_daf_agen": "Boucler la validation DAF des dossiers en attente.",
+        "revenue_total_paris": "Activer relances + nouvelles signatures Paris.",
+        "revenue_total_agen": "Activer relances + nouvelles signatures Agen.",
         "patients_paris": "Optimiser le planning de consultations Paris.",
         "procedures_done": "Reduire les creneaux libres non remplis.",
         "satisfaction": "Mettre en place un suivi post-consultation.",

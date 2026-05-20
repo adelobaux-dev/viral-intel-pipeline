@@ -11,6 +11,7 @@ Paris/Agen). Les KPIs par ville restent a definir (cf. source_1).
 
 import csv
 import io
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -277,6 +278,101 @@ def parse_operations():
                                  if latest_date else None)}
 
 
+def _is_red(c):
+    r, g, b = c.get("red", 0), c.get("green", 0), c.get("blue", 0)
+    return r > 0.45 and r > g + 0.1 and r > b + 0.1
+
+
+def _is_green(c):
+    r, g, b = c.get("red", 0), c.get("green", 0), c.get("blue", 0)
+    return g > 0.45 and g > r + 0.05 and g > b + 0.05
+
+
+def _is_yellow(c):
+    """Jaune = encaisse theorique en attente validation DAF."""
+    r, g, b = c.get("red", 0), c.get("green", 0), c.get("blue", 0)
+    return r > 0.55 and g > 0.55 and (r - b) > 0.15 and (g - b) > 0.15
+
+
+def parse_revenue_breakdown():
+    """Lit source_1 gid=0 via l'API Sheets pour distinguer, sur col8 (MONTANT) :
+       cellule verte  -> CA encaisse
+       cellule rouge  -> CA signe (pas encore encaisse)
+       autre couleur  -> ignore
+    Necessite GOOGLE_SERVICE_ACCOUNT_JSON. Retombe sur None si indispo.
+    """
+    try:
+        from sheets_publisher import _credentials
+        from googleapiclient.discovery import build
+    except BaseException as exc:
+        return {"available": False, "reason": f"google libs: {exc}"}
+    try:
+        creds = _credentials()
+    except BaseException as exc:
+        return {"available": False, "reason": f"credentials: {exc}"}
+
+    service = build("sheets", "v4", credentials=creds)
+    fields = ("sheets(properties(sheetId,title),data(rowData(values("
+              "formattedValue,effectiveFormat/backgroundColor))))")
+    resp = service.spreadsheets().get(
+        spreadsheetId=S1, ranges=["A1:Z1500"],
+        includeGridData=True, fields=fields,
+    ).execute()
+
+    target = None
+    for s in resp.get("sheets", []):
+        if s["properties"].get("sheetId") == 0:
+            target = s
+            break
+    if target is None and resp.get("sheets"):
+        target = resp["sheets"][0]
+    if target is None:
+        return {"available": False, "reason": "onglet introuvable"}
+
+    by = {"paris": {"encaisse": 0.0, "signe": 0.0, "attente_daf": 0.0,
+                    "rows_encaisse": 0, "rows_signe": 0,
+                    "rows_attente_daf": 0},
+          "agen": {"encaisse": 0.0, "signe": 0.0, "attente_daf": 0.0,
+                   "rows_encaisse": 0, "rows_signe": 0,
+                   "rows_attente_daf": 0}}
+    for row in target.get("data", [{}])[0].get("rowData", []) or []:
+        values = row.get("values", [])
+
+        def fv(i):
+            return values[i].get("formattedValue", "") if i < len(values) else ""
+
+        city = _classify_city(fv(7))
+        if city is None:
+            continue
+        if _is_cancelled(fv(0)):
+            continue
+        amount = _num(fv(8))
+        if amount is None or amount <= 0:
+            continue
+        bg = ((values[8].get("effectiveFormat") or {}).get("backgroundColor")
+              or {}) if 8 < len(values) else {}
+        if _is_green(bg):
+            by[city]["encaisse"] += amount
+            by[city]["rows_encaisse"] += 1
+        elif _is_red(bg):
+            by[city]["signe"] += amount
+            by[city]["rows_signe"] += 1
+        elif _is_yellow(bg):
+            by[city]["attente_daf"] += amount
+            by[city]["rows_attente_daf"] += 1
+
+    for c in ("paris", "agen"):
+        by[c]["encaisse"] = round(by[c]["encaisse"], 2)
+        by[c]["signe"] = round(by[c]["signe"], 2)
+        by[c]["attente_daf"] = round(by[c]["attente_daf"], 2)
+        by[c]["total"] = round(
+            by[c]["encaisse"] + by[c]["signe"] + by[c]["attente_daf"], 2)
+    return {"available": True, "legend": {
+        "encaisse": "vert", "signe": "rouge",
+        "attente_daf": "jaune (encaisse theorique, validation DAF en attente)"},
+        **by}
+
+
 def parse_agen_soins():
     """Onglet 'soins 2026' (gid=1816506397) du sheet S1.
 
@@ -324,17 +420,22 @@ def parse_agen_soins():
 
 
 def collect():
+    """Lance les 5 parsers en parallele (fetch reseau = la majorite du cout)."""
+    parsers = (("closing", parse_closing),
+               ("acquisition", parse_acquisition),
+               ("leads", parse_leads),
+               ("operations", parse_operations),
+               ("agen_soins", parse_agen_soins),
+               ("revenue_breakdown", parse_revenue_breakdown))
     out = {"ok": True, "errors": {}}
-    for name, fn in (("closing", parse_closing),
-                     ("acquisition", parse_acquisition),
-                     ("leads", parse_leads),
-                     ("operations", parse_operations),
-                     ("agen_soins", parse_agen_soins)):
-        try:
-            out[name] = fn()
-        except Exception as exc:
-            out[name] = None
-            out["errors"][name] = str(exc)
+    with ThreadPoolExecutor(max_workers=len(parsers)) as pool:
+        futures = {name: pool.submit(fn) for name, fn in parsers}
+        for name, fut in futures.items():
+            try:
+                out[name] = fut.result()
+            except BaseException as exc:
+                out[name] = None
+                out["errors"][name] = str(exc)
     out["ok"] = any(out.get(k) for k in (
         "closing", "acquisition", "leads", "operations", "agen_soins"))
     return out

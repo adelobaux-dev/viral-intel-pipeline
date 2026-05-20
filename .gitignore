@@ -59,6 +59,9 @@ tmp/
 temp/
 *.tmp
 
+# Metriques generees (calculees a la volee par /api/social, plus versionnees)
+social_metrics.json
+
 # OS
 .DS_Store
 Thumbs.db

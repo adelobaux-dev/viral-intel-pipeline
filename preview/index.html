@@ -31,267 +31,110 @@ border-radius:999px;margin-right:8px;text-transform:uppercase}
 .muted{color:#7d85b5}footer{padding:18px 28px;color:#7d85b5;font-size:12px}
 </style></head><body>
 <header><h1>Dashboard CEO — apercu des dashboards par role</h1>
-<div class="sub">Genere (2026-05-20T06:53:45.873360+00:00). Palette bleu profond /
+<div class="sub">Genere (DEMO). Palette bleu profond /
 indigo / violet · couleurs par tiers (bleu=sur-perf → noir=critique).
 Les boutons ci-dessous = acces admin a chaque dashboard.</div>
 <div class="fresh">
-  <div class="fresh-msg">Mis a jour le 2026-05-20 — derniere donnee dans CRM leads le 2026-05-20 (il y a 0 j)</div>
-  <div class="bar"><span style="width:100%"></span></div>
-  <div class="score">Fraicheur des donnees : 100 / 100</div>
-  <div class="fresh-bysrc">CRM leads: 2026-05-20 · Soins Agen 2026: 2026-05-19 · Bloc operatoire: 2026-05-11 · Closing: 2026-05-04 · Acquisition: 2025-12-01</div>
+  <div class="fresh-msg">Pas de donnees</div>
+  <div class="bar"><span style="width:0%"></span></div>
+  <div class="score">Fraicheur des donnees : 0 / 100</div>
+  <div class="fresh-bysrc"></div>
 </div></header>
 <nav><button onclick="show('ceo')">CEO (admin)</button><button onclick="show('secretaire_paris')">Secretaire Paris</button><button onclick="show('secretaire_agen')">Secretaire Agen</button><button onclick="show('closer_paris')">Closer Paris</button><button onclick="show('infirmiere_paris')">Infirmiere Paris</button><button onclick="show('manager_agen')">Manager Agen</button></nav><main>
     <section class="role active" id="ceo">
       <h2>CEO</h2>
       <h3>KPIs</h3><div class="grid">
+      <div class="card" style="border-left:6px solid #f97316">
+        <div class="kname">followers</div>
+        <div class="kval">7400</div>
+        <div class="ktgt">objectif : 10000 &nbsp;|&nbsp;
+          <span style="color:#f97316;font-weight:700">ORANGE</span>
+        </div>
+      </div>
+      <div class="card" style="border-left:6px solid #eab308">
+        <div class="kname">views weekly</div>
+        <div class="kval">41000</div>
+        <div class="ktgt">objectif : 50000 &nbsp;|&nbsp;
+          <span style="color:#eab308;font-weight:700">JAUNE</span>
+        </div>
+      </div>
       <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">closing rate</div>
-        <div class="kval">29.26</div>
-        <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
+        <div class="kname">interactions weekly</div>
+        <div class="kval">2560</div>
+        <div class="ktgt">objectif : 2000 &nbsp;|&nbsp;
           <span style="color:#3b82f6;font-weight:700">BLEU</span>
         </div>
       </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">closing rate agen</div>
-        <div class="kval">29.26</div>
-        <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">revenue paris</div>
-        <div class="kval">343113.0</div>
-        <div class="ktgt">objectif : 30000 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #ef4444">
-        <div class="kname">calls done</div>
-        <div class="kval">24.0</div>
-        <div class="ktgt">objectif : 60 &nbsp;|&nbsp;
-          <span style="color:#ef4444;font-weight:700">ROUGE</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">leads paris</div>
-        <div class="kval">134.0</div>
-        <div class="ktgt">objectif : 50 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">leads agen</div>
-        <div class="kval">134.0</div>
-        <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #22c55e">
-        <div class="kname">appointments paris</div>
-        <div class="kval">40.0</div>
-        <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
-          <span style="color:#22c55e;font-weight:700">VERT</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">appointments agen</div>
-        <div class="kval">40.0</div>
-        <div class="ktgt">objectif : 30 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">team activity agen</div>
-        <div class="kval">100.0</div>
-        <div class="ktgt">objectif : 80 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
+      <div class="card" style="border-left:6px solid #f97316">
         <div class="kname">messages received</div>
-        <div class="kval">167</div>
+        <div class="kval">63</div>
         <div class="ktgt">objectif : 100 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+          <span style="color:#f97316;font-weight:700">ORANGE</span>
         </div>
       </div>
-      <div class="card" style="border-left:6px solid #22c55e">
-        <div class="kname">revenue realized paris</div>
-        <div class="kval">2276715.3</div>
-        <div class="ktgt">objectif : 2000000 &nbsp;|&nbsp;
-          <span style="color:#22c55e;font-weight:700">VERT</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">patients paris</div>
-        <div class="kval">260</div>
-        <div class="ktgt">objectif : 200 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">no show rate</div>
-        <div class="kval">5.62</div>
-        <div class="ktgt">objectif : 10 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">revenue agen</div>
-        <div class="kval">252887.9</div>
-        <div class="ktgt">objectif : 150000 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">procedures done</div>
-        <div class="kval">361</div>
-        <div class="ktgt">objectif : 300 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+      <div class="card" style="border-left:6px solid #f97316">
+        <div class="kname">youtube subscribers</div>
+        <div class="kval">3100</div>
+        <div class="ktgt">objectif : 5000 &nbsp;|&nbsp;
+          <span style="color:#f97316;font-weight:700">ORANGE</span>
         </div>
       </div></div>
-      <h3>A corriger cette semaine / ce mois</h3><ul class="urgent">
-      <li><span class="badge" style="background:#ef4444">urgent</span>
-      <b>calls done</b> — [A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour.</li></ul>
+      <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
       <h3>Recommandations</h3><ul class="recos">
-      <li><span class="badge" style="background:#ef4444">urgent</span>
-      <b>calls done</b> — [A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour.</li></ul>
+      <li><span class="badge" style="background:#f97316">important</span>
+      <b>followers</b> — Augmenter la cadence de publication et les collaborations.</li>
+      <li><span class="badge" style="background:#f97316">important</span>
+      <b>messages received</b> — Activer une story 'posez vos questions' + DM auto.</li>
+      <li><span class="badge" style="background:#f97316">important</span>
+      <b>youtube subscribers</b> — Ajouter cards/end-screens d'abonnement.</li>
+      <li><span class="badge" style="background:#eab308">a surveiller</span>
+      <b>views weekly</b> — Reposter les 3 meilleurs reels, tester de nouveaux hooks.</li></ul>
     </section>
     <section class="role " id="secretaire_paris">
       <h2>Secretaire Paris</h2>
       <h3>KPIs</h3><div class="grid">
-      <div class="card" style="border-left:6px solid #22c55e">
-        <div class="kname">appointments paris</div>
-        <div class="kval">40.0</div>
-        <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
-          <span style="color:#22c55e;font-weight:700">VERT</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
+      <div class="card" style="border-left:6px solid #f97316">
         <div class="kname">messages received</div>
-        <div class="kval">167</div>
+        <div class="kval">63</div>
         <div class="ktgt">objectif : 100 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+          <span style="color:#f97316;font-weight:700">ORANGE</span>
         </div>
       </div></div>
       <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
-      <h3>Recommandations</h3><ul class="recos"><li class='muted'>Tout est au vert.</li></ul>
+      <h3>Recommandations</h3><ul class="recos">
+      <li><span class="badge" style="background:#f97316">important</span>
+      <b>messages received</b> — Activer une story 'posez vos questions' + DM auto.</li></ul>
     </section>
     <section class="role " id="secretaire_agen">
       <h2>Secretaire Agen</h2>
       <h3>KPIs</h3><div class="grid">
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">appointments agen</div>
-        <div class="kval">40.0</div>
-        <div class="ktgt">objectif : 30 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
+      <div class="card" style="border-left:6px solid #f97316">
         <div class="kname">messages received</div>
-        <div class="kval">167</div>
+        <div class="kval">63</div>
         <div class="ktgt">objectif : 100 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
+          <span style="color:#f97316;font-weight:700">ORANGE</span>
         </div>
       </div></div>
       <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
-      <h3>Recommandations</h3><ul class="recos"><li class='muted'>Tout est au vert.</li></ul>
+      <h3>Recommandations</h3><ul class="recos">
+      <li><span class="badge" style="background:#f97316">important</span>
+      <b>messages received</b> — Activer une story 'posez vos questions' + DM auto.</li></ul>
     </section>
     <section class="role " id="closer_paris">
       <h2>Closer Paris</h2>
-      <h3>KPIs</h3><div class="grid">
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">closing rate</div>
-        <div class="kval">29.26</div>
-        <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">revenue paris</div>
-        <div class="kval">343113.0</div>
-        <div class="ktgt">objectif : 30000 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #ef4444">
-        <div class="kname">calls done</div>
-        <div class="kval">24.0</div>
-        <div class="ktgt">objectif : 60 &nbsp;|&nbsp;
-          <span style="color:#ef4444;font-weight:700">ROUGE</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">leads paris</div>
-        <div class="kval">134.0</div>
-        <div class="ktgt">objectif : 50 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div></div>
-      <h3>A corriger cette semaine / ce mois</h3><ul class="urgent">
-      <li><span class="badge" style="background:#ef4444">urgent</span>
-      <b>calls done</b> — [A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour.</li></ul>
-      <h3>Recommandations</h3><ul class="recos">
-      <li><span class="badge" style="background:#ef4444">urgent</span>
-      <b>calls done</b> — [A CORRIGER CETTE SEMAINE] Bloquer 2 creneaux d'appels supplementaires/jour.</li></ul>
+      <h3>KPIs</h3><div class="grid"><p class='muted'>Aucun KPI (brancher l'app de closing).</p></div>
+      <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
+      <h3>Recommandations</h3><ul class="recos"><li class='muted'>Tout est au vert.</li></ul>
     </section>
     <section class="role " id="infirmiere_paris">
       <h2>Infirmiere Paris</h2>
-      <h3>KPIs</h3><div class="grid">
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">patients paris</div>
-        <div class="kval">260</div>
-        <div class="ktgt">objectif : 200 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">no show rate</div>
-        <div class="kval">5.62</div>
-        <div class="ktgt">objectif : 10 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">procedures done</div>
-        <div class="kval">361</div>
-        <div class="ktgt">objectif : 300 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div></div>
+      <h3>KPIs</h3><div class="grid"><p class='muted'>Aucun KPI (brancher l'app de closing).</p></div>
       <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
       <h3>Recommandations</h3><ul class="recos"><li class='muted'>Tout est au vert.</li></ul>
     </section>
     <section class="role " id="manager_agen">
       <h2>Manager Agen</h2>
-      <h3>KPIs</h3><div class="grid">
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">closing rate agen</div>
-        <div class="kval">29.26</div>
-        <div class="ktgt">objectif : 25 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">leads agen</div>
-        <div class="kval">134.0</div>
-        <div class="ktgt">objectif : 40 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">team activity agen</div>
-        <div class="kval">100.0</div>
-        <div class="ktgt">objectif : 80 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div>
-      <div class="card" style="border-left:6px solid #3b82f6">
-        <div class="kname">revenue agen</div>
-        <div class="kval">252887.9</div>
-        <div class="ktgt">objectif : 150000 &nbsp;|&nbsp;
-          <span style="color:#3b82f6;font-weight:700">BLEU</span>
-        </div>
-      </div></div>
+      <h3>KPIs</h3><div class="grid"><p class='muted'>Aucun KPI (brancher l'app de closing).</p></div>
       <h3>A corriger cette semaine / ce mois</h3><ul class="urgent"><li class='muted'>Aucune urgence cette semaine.</li></ul>
       <h3>Recommandations</h3><ul class="recos"><li class='muted'>Tout est au vert.</li></ul>
     </section></main>
