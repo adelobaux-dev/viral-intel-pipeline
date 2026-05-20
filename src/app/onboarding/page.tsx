@@ -12,7 +12,15 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const total = PERSONALITY_QUESTIONS.length;
-  const done = Object.values(answers).filter((v) => v?.trim()).length;
+  // Une réponse est valide si non vide et si elle respecte la longueur minimum
+  // requise (questions ouvertes). MCQ : juste non vide.
+  const validCount = PERSONALITY_QUESTIONS.filter((q) => {
+    const a = (answers[q.id] ?? "").trim();
+    if (!a) return false;
+    if (q.kind === "open") return a.length >= (q.minLength ?? 30);
+    return true;
+  }).length;
+  const allValid = validCount === total;
 
   async function submit() {
     setError(null);
@@ -68,54 +76,80 @@ export default function OnboardingPage() {
             Cabinet Dr Alexis Delobaux
           </p>
           <h1 className="mt-2 text-2xl font-bold text-slate-800">
-            Profil de communication
+            Profil de communication approfondi
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Quelques questions (Comm Colors / Process Comm) pour adapter le
-            coaching à TA communication. ~3 minutes.
+            Inspiré de Kahler (Process Comm), Kahneman (biais),
+            Joule &amp; Beauvois (engagement), Comm Colors / DISC.
+            <br />
+            ~7-10 minutes — les questions ouvertes sont
+            <strong> obligatoires</strong> et confidentielles.
           </p>
         </div>
 
         <div className="space-y-4">
-          {PERSONALITY_QUESTIONS.map((q, i) => (
-            <div key={q.id} className="card p-4">
-              <p className="mb-3 text-sm font-semibold text-slate-800">
-                {i + 1}. {q.question}
-              </p>
-              {q.options.length > 0 ? (
-                <div className="space-y-2">
-                  {q.options.map((opt) => (
-                    <label
-                      key={opt}
-                      className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                        answers[q.id] === opt
-                          ? "border-medical-500 bg-medical-50"
-                          : "border-slate-200 hover:bg-slate-50"
+          {PERSONALITY_QUESTIONS.map((q, i) => {
+            const a = (answers[q.id] ?? "").trim();
+            const minLen = q.minLength ?? 30;
+            const tooShort = q.kind === "open" && a.length > 0 && a.length < minLen;
+            return (
+              <div key={q.id} className="card p-4">
+                <p className="mb-1 text-sm font-semibold text-slate-800">
+                  {i + 1}. {q.question}
+                </p>
+                {q.helper && (
+                  <p className="mb-3 text-xs text-slate-500">{q.helper}</p>
+                )}
+                {q.kind === "mc" ? (
+                  <div className="space-y-2">
+                    {(q.options ?? []).map((opt) => (
+                      <label
+                        key={opt}
+                        className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                          answers[q.id] === opt
+                            ? "border-medical-500 bg-medical-50"
+                            : "border-slate-200 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={q.id}
+                          checked={answers[q.id] === opt}
+                          onChange={() =>
+                            setAnswers((x) => ({ ...x, [q.id]: opt }))
+                          }
+                        />
+                        {opt}
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <textarea
+                      className="input min-h-[100px]"
+                      placeholder={`Réponse obligatoire (${minLen} caractères minimum)`}
+                      value={answers[q.id] ?? ""}
+                      onChange={(e) =>
+                        setAnswers((x) => ({ ...x, [q.id]: e.target.value }))
+                      }
+                    />
+                    <p
+                      className={`mt-1 text-xs ${
+                        tooShort
+                          ? "text-amber-600"
+                          : a.length >= minLen
+                            ? "text-emerald-600"
+                            : "text-slate-400"
                       }`}
                     >
-                      <input
-                        type="radio"
-                        name={q.id}
-                        checked={answers[q.id] === opt}
-                        onChange={() =>
-                          setAnswers((a) => ({ ...a, [q.id]: opt }))
-                        }
-                      />
-                      {opt}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <textarea
-                  className="input min-h-[70px]"
-                  value={answers[q.id] ?? ""}
-                  onChange={(e) =>
-                    setAnswers((a) => ({ ...a, [q.id]: e.target.value }))
-                  }
-                />
-              )}
-            </div>
-          ))}
+                      {a.length}/{minLen} caractères
+                      {tooShort && " — un peu plus de détail aide l'analyse"}
+                    </p>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {error && (
@@ -126,11 +160,11 @@ export default function OnboardingPage() {
 
         <div className="sticky bottom-4 mt-6 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
           <span className="text-sm text-slate-500">
-            {done}/{total} répondu(s)
+            {validCount}/{total} validé(s)
           </span>
           <button
             onClick={submit}
-            disabled={loading || done < total}
+            disabled={loading || !allValid}
             className="btn-primary"
           >
             {loading ? (

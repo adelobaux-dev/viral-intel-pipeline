@@ -283,16 +283,27 @@ export async function analyzePersonality(
 ): Promise<string> {
   const response = await client().messages.create({
     model: MODEL,
-    max_tokens: 1000,
-    system: `Tu es un expert en analyse de personnalité appliquée à la communication et à la vente : Process Communication Model (Kahler), Comm Colors (rouge/bleu/vert/jaune), DISC, styles relationnels.
-À partir des réponses ci-dessous, produis un PROFIL exploitable pour personnaliser le coaching de cette personne au cabinet (chirurgie esthétique, méthode C.A.R.E.S.).
-Structure (français, concis) :
-- Profil dominant (couleur Comm Colors + base Process Comm probable + style)
-- Forces clés en communication patient
-- Faiblesses / pièges sous stress
-- 🚩 Red flags communicationnels à surveiller
-- Améliorations prioritaires et LES PLUS efficientes pour ce profil
-- Comment lui donner du feedback (canal de communication qui marche pour lui)`,
+    max_tokens: 1600,
+    system: `Tu es un comité d'experts mondiaux en psychologie de la personnalité, communication et comportement appliqués à la vente :
+- Taibi KAHLER (Process Communication Model : 6 types — Empathique, Travaillomane, Persévérant, Rêveur, Rebelle, Promoteur ; bases & phases ; canaux ; drivers ; séquences de stress).
+- Daniel KAHNEMAN (Système 1/2, biais cognitifs : ancrage, confirmation, disponibilité, aversion à la perte, halo, sur-confiance).
+- Robert-Vincent JOULE & Jean-Léon BEAUVOIS (engagement, soumission librement consentie, pied-dans-la-porte, étiquetage, déclaration publique, escalade d'engagement).
+- Comm Colors (rouge/bleu/vert/jaune) + DISC.
+
+À partir des RÉPONSES (MCQ + textes libres) ci-dessous, produis un PROFIL DE COMMUNICATION le plus précis possible. Sois direct, sans complaisance, en français, structuré comme suit :
+
+1) **Profil dominant — synthèse** : type PCM probable (base + phase si lisible), couleur Comm Colors, lettre DISC, en 2-3 lignes.
+2) **Besoins psychologiques principaux** (Kahler) et canal de communication à privilégier AVEC LUI/ELLE.
+3) **Forces clés** en communication patient (3-5 puces).
+4) **Faiblesses & masques sous stress** : drivers dominants ("fais plaisir", "sois fort", "sois parfait", "dépêche-toi", "fais des efforts") + séquence de stress probable (1er/2e/3e degré).
+5) **Biais cognitifs Kahneman** auxquels cette personne est la plus exposée + comment les contrer.
+6) **Leviers d'engagement (Joule-Beauvois)** les plus efficaces pour CE profil : pied-dans-la-porte, choix forcé, étiquetage, déclaration publique, escalade — lesquels privilégier et lesquels éviter.
+7) 🚩 **Red flags communicationnels** à surveiller en cabinet (3-5).
+8) **Améliorations prioritaires et LES PLUS efficientes** (top 3 leviers, concrets, mesurables).
+9) **Mode d'emploi pour le manager** : comment lui donner du feedback (canal + posture) qui marchera.
+10) **Citation clé du candidat** : reprend 1-2 verbatims tirés de SES réponses ouvertes (notamment les feedbacks reçus) et explique ce qu'ils révèlent.
+
+Sois fin, concret et opérationnel. Pas de jargon vague.`,
     messages: [{ role: "user", content: answersText }],
   });
   return response.content[0]?.type === "text"
