@@ -9,7 +9,19 @@ import { createClient } from "@deepgram/sdk";
  * mode "API key". On crée donc une **clé projet temporaire** scoppée sur
  * l'usage, et non un jeton Bearer (non supporté par cette version du SDK).
  */
-export async function createEphemeralToken(ttlSeconds = 60): Promise<{
+
+// Cache module-level : Deepgram limite la création de clés à ~50/min ;
+// les reconnexions WebSocket + watchdog côté client appellent cet endpoint
+// très fréquemment. On réutilise donc la même clé tant qu'elle n'expire
+// pas dans les 2 prochaines minutes.
+type CachedToken = {
+  token: string;
+  expiresAt: number; // epoch ms
+};
+let cached: CachedToken | null = null;
+const REFRESH_BUFFER_MS = 120_000;
+
+export async function createEphemeralToken(ttlSeconds = 3600): Promise<{
   token: string;
   expiresIn: number;
 }> {
@@ -18,6 +30,14 @@ export async function createEphemeralToken(ttlSeconds = 60): Promise<{
     throw new Error(
       "DEEPGRAM_API_KEY manquante ou non configurée dans .env.local",
     );
+  }
+
+  const now = Date.now();
+  if (cached && cached.expiresAt - REFRESH_BUFFER_MS > now) {
+    return {
+      token: cached.token,
+      expiresIn: Math.floor((cached.expiresAt - now) / 1000),
+    };
   }
 
   const deepgram = createClient(apiKey);
@@ -40,6 +60,14 @@ export async function createEphemeralToken(ttlSeconds = 60): Promise<{
   });
 
   if (error || !result?.key) {
+    // Si on a une clé encore valide en cache (même hors fenêtre de buffer),
+    // on la renvoie plutôt que de remonter le rate-limit à l'utilisateur.
+    if (cached && cached.expiresAt > now + 30_000) {
+      return {
+        token: cached.token,
+        expiresIn: Math.floor((cached.expiresAt - now) / 1000),
+      };
+    }
     throw new Error(
       `Impossible de créer une clé temporaire Deepgram : ${
         error?.message ??
@@ -47,6 +75,11 @@ export async function createEphemeralToken(ttlSeconds = 60): Promise<{
       }`,
     );
   }
+
+  cached = {
+    token: result.key,
+    expiresAt: now + ttlSeconds * 1000,
+  };
 
   return { token: result.key, expiresIn: ttlSeconds };
 }

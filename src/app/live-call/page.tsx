@@ -75,6 +75,23 @@ export default function LiveCallPage() {
         .map((l) => `${l.speaker === "user" ? "Closer" : "Patient"}: ${l.text}`)
         .join("\n");
 
+      // Si aucune parole captée, on ne peut pas analyser : on annule
+      // proprement plutôt que de remonter "callId et transcript requis".
+      if (!transcript.trim()) {
+        setError(
+          "Aucune parole captée — l'appel n'a pas pu être transcrit (micro coupé ou Deepgram indisponible).",
+        );
+        clearConversation();
+        reset();
+        return;
+      }
+      if (!callId) {
+        setError("Appel non démarré correctement. Relance « Démarrer la conversation ».");
+        clearConversation();
+        reset();
+        return;
+      }
+
       // (8) Aucune prochaine étape verrouillée ?
       if (
         !/\b(rendez-?vous|rdv|devis|pr[ée]paiement|acompte|consultation)\b/i.test(
@@ -120,6 +137,7 @@ export default function LiveCallPage() {
     setIntegrations(null);
     reset();
     setPatientEmail("");
+    setError(null);
   }
 
   return (

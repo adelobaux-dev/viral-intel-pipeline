@@ -26,6 +26,10 @@ export function LiveTranscription() {
   const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retriesRef = useRef(0);
   const watchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Empêche les appels parallèles à /api/deepgram/token qui saturent
+  // l'API de création de clés Deepgram (rate limit).
+  const connectingRef = useRef(false);
+  const lastConnectAtRef = useRef(0);
 
   const handleChunk = useCallback((chunk: Blob) => {
     const conn = connectionRef.current;
@@ -48,6 +52,14 @@ export function LiveTranscription() {
   }, []);
 
   const connect = useCallback(async () => {
+    // Évite les connexions concurrentes (watchdog + close + force-restart).
+    if (connectingRef.current) return;
+    // Throttle : 1 tentative max toutes les 1,5 s pour ne pas marteler
+    // l'endpoint de création de clé.
+    const now = Date.now();
+    if (now - lastConnectAtRef.current < 1500) return;
+    lastConnectAtRef.current = now;
+    connectingRef.current = true;
     setStatus("connecting");
     setErrorMsg(null);
     try {
@@ -72,6 +84,7 @@ export function LiveTranscription() {
 
       connection.on(LiveTranscriptionEvents.Open, () => {
         retriesRef.current = 0;
+        connectingRef.current = false;
         setStatus("live");
         keepAliveRef.current = setInterval(() => {
           try {
@@ -119,14 +132,18 @@ export function LiveTranscription() {
 
       connection.on(LiveTranscriptionEvents.Close, () => {
         if (keepAliveRef.current) clearInterval(keepAliveRef.current);
-        // Reconnexion automatique tant que l'enregistrement est actif.
+        connectingRef.current = false;
+        // Reconnexion automatique tant que l'enregistrement est actif,
+        // avec back-off exponentiel pour ne pas saturer l'API.
         if (useCallStore.getState().isRecording && retriesRef.current < 5) {
           retriesRef.current += 1;
           setStatus("reconnecting");
-          setTimeout(connect, Math.min(1000 * retriesRef.current, 5000));
+          const delay = Math.min(2000 * retriesRef.current, 10_000);
+          setTimeout(connect, delay);
         }
       });
     } catch (err) {
+      connectingRef.current = false;
       setErrorMsg(
         err instanceof Error ? err.message : "Échec connexion Deepgram",
       );
@@ -188,25 +205,26 @@ export function LiveTranscription() {
       connect();
       recorder.start();
 
-      // Watchdog rapide : check toutes les 3 s, force restart si après 5 s
-      // la connexion n'est pas ouverte ou aucune phrase n'a été transcrite.
+      // Watchdog : on ne force un redémarrage que si après 15 s
+      // la connexion n'est toujours pas ouverte (au-delà, c'est cassé).
+      // Tant qu'elle est OPEN, on laisse Deepgram silencieux : forcer
+      // toutes les quelques secondes crée des clés à perte → rate limit.
       clearWatchdog();
       watchdogRef.current = setInterval(() => {
         const st = useCallStore.getState();
         if (!st.isRecording) return;
+        if (connectingRef.current) return;
         const elapsed = (Date.now() - (st.startedAt ?? Date.now())) / 1000;
-        if (elapsed < 5) return;
+        if (elapsed < 15) return;
         const open = connectionRef.current?.getReadyState() === 1;
-        const hasLines = st.lines.some((l) => l.isFinal);
-        if (!open || !hasLines) {
-          setStatus("reconnecting");
-          retriesRef.current = 0;
-          recorder.stop();
-          teardown();
-          connect();
-          recorder.start();
-        }
-      }, 3000);
+        if (open) return;
+        setStatus("reconnecting");
+        retriesRef.current = 0;
+        recorder.stop();
+        teardown();
+        connect();
+        recorder.start();
+      }, 5000);
     } else {
       clearWatchdog();
       recorder.stop();
