@@ -1,17 +1,26 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  createClient,
-  LiveTranscriptionEvents,
-  type LiveClient,
-} from "@deepgram/sdk";
 import { Mic, MicOff, AlertTriangle } from "lucide-react";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { useCallStore } from "@/lib/store";
 import { WebSpeechFallback } from "@/components/WebSpeechFallback";
 
 type Status = "idle" | "connecting" | "live" | "reconnecting" | "error";
+
+const DEEPGRAM_WS_BASE = "wss://api.deepgram.com/v1/listen";
+
+function buildDeepgramUrl(lang: "fr" | "en"): string {
+  const params = new URLSearchParams({
+    model: "nova-2",
+    language: lang === "en" ? "en" : "fr",
+    smart_format: "true",
+    interim_results: "true",
+    punctuate: "true",
+    diarize: "true",
+  });
+  return `${DEEPGRAM_WS_BASE}?${params.toString()}`;
+}
 
 export function LiveTranscription() {
   const isRecording = useCallStore((s) => s.isRecording);
@@ -22,18 +31,18 @@ export function LiveTranscription() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showDiag, setShowDiag] = useState(false);
 
-  const connectionRef = useRef<LiveClient | null>(null);
+  const connectionRef = useRef<WebSocket | null>(null);
   const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retriesRef = useRef(0);
   const watchdogRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Empêche les appels parallèles à /api/deepgram/token qui saturent
-  // l'API de création de clés Deepgram (rate limit).
+  // Empêche les appels parallèles à /api/deepgram/token et les
+  // ouvertures de WebSocket concurrentes.
   const connectingRef = useRef(false);
   const lastConnectAtRef = useRef(0);
 
   const handleChunk = useCallback((chunk: Blob) => {
     const conn = connectionRef.current;
-    if (conn && conn.getReadyState() === 1) {
+    if (conn && conn.readyState === WebSocket.OPEN) {
       chunk.arrayBuffer().then((buf) => conn.send(buf));
     }
   }, []);
@@ -43,10 +52,16 @@ export function LiveTranscription() {
   const teardown = useCallback(() => {
     if (keepAliveRef.current) clearInterval(keepAliveRef.current);
     keepAliveRef.current = null;
-    try {
-      connectionRef.current?.requestClose();
-    } catch {
-      /* noop */
+    const conn = connectionRef.current;
+    if (conn) {
+      try {
+        if (conn.readyState === WebSocket.OPEN) {
+          conn.send(JSON.stringify({ type: "CloseStream" }));
+        }
+        conn.close();
+      } catch {
+        /* noop */
+      }
     }
     connectionRef.current = null;
   }, []);
@@ -54,8 +69,6 @@ export function LiveTranscription() {
   const connect = useCallback(async () => {
     // Évite les connexions concurrentes (watchdog + close + force-restart).
     if (connectingRef.current) return;
-    // Throttle : 1 tentative max toutes les 1,5 s pour ne pas marteler
-    // l'endpoint de création de clé.
     const now = Date.now();
     if (now - lastConnectAtRef.current < 1500) return;
     lastConnectAtRef.current = now;
@@ -70,39 +83,56 @@ export function LiveTranscription() {
       }
       const { token } = (await res.json()) as { token: string };
 
-      const deepgram = createClient(token);
       const lang = useCallStore.getState().transcriptionLang;
-      const connection = deepgram.listen.live({
-        model: "nova-2",
-        language: lang === "en" ? "en" : "fr",
-        smart_format: true,
-        interim_results: true,
-        punctuate: true,
-        diarize: true,
-      });
-      connectionRef.current = connection;
+      // Auth Deepgram en mode JWT : sous-protocole ["bearer", <token>].
+      // Le SDK navigateur hardcode ["token", key] et ne supporte pas
+      // les JWT → on ouvre la WebSocket nous-mêmes.
+      const ws = new WebSocket(buildDeepgramUrl(lang), ["bearer", token]);
+      connectionRef.current = ws;
 
-      connection.on(LiveTranscriptionEvents.Open, () => {
+      ws.onopen = () => {
         retriesRef.current = 0;
         connectingRef.current = false;
         setStatus("live");
         keepAliveRef.current = setInterval(() => {
           try {
-            connection.keepAlive();
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: "KeepAlive" }));
+            }
           } catch {
             /* noop */
           }
         }, 8000);
-      });
+      };
 
-      connection.on(LiveTranscriptionEvents.Transcript, (data) => {
-        const alt = data?.channel?.alternatives?.[0];
-        const text: string = alt?.transcript ?? "";
-        if (!text.trim()) return;
+      ws.onmessage = (event) => {
+        let data: {
+          type?: string;
+          is_final?: boolean;
+          channel?: {
+            alternatives?: {
+              transcript?: string;
+              words?: { speaker?: number }[];
+            }[];
+          };
+        };
+        try {
+          data = JSON.parse(event.data as string);
+        } catch {
+          return;
+        }
+        if (data.type !== "Results") return;
+        const alt = data.channel?.alternatives?.[0];
+        const text = (alt?.transcript ?? "").trim();
+        if (!text) return;
 
         const speakerIdx = alt?.words?.[0]?.speaker;
         const speaker =
-          speakerIdx === 0 ? "user" : speakerIdx == null ? "unknown" : "patient";
+          speakerIdx === 0
+            ? "user"
+            : speakerIdx == null
+              ? "unknown"
+              : "patient";
 
         if (data.is_final) {
           addLine({
@@ -121,27 +151,23 @@ export function LiveTranscription() {
             isFinal: false,
           });
         }
-      });
+      };
 
-      connection.on(LiveTranscriptionEvents.Error, (err) => {
-        setErrorMsg(
-          typeof err?.message === "string" ? err.message : "Erreur Deepgram",
-        );
+      ws.onerror = () => {
+        setErrorMsg("Erreur WebSocket Deepgram");
         setStatus("error");
-      });
+      };
 
-      connection.on(LiveTranscriptionEvents.Close, () => {
+      ws.onclose = () => {
         if (keepAliveRef.current) clearInterval(keepAliveRef.current);
         connectingRef.current = false;
-        // Reconnexion automatique tant que l'enregistrement est actif,
-        // avec back-off exponentiel pour ne pas saturer l'API.
         if (useCallStore.getState().isRecording && retriesRef.current < 5) {
           retriesRef.current += 1;
           setStatus("reconnecting");
           const delay = Math.min(2000 * retriesRef.current, 10_000);
           setTimeout(connect, delay);
         }
-      });
+      };
     } catch (err) {
       connectingRef.current = false;
       setErrorMsg(
@@ -216,7 +242,7 @@ export function LiveTranscription() {
         if (connectingRef.current) return;
         const elapsed = (Date.now() - (st.startedAt ?? Date.now())) / 1000;
         if (elapsed < 15) return;
-        const open = connectionRef.current?.getReadyState() === 1;
+        const open = connectionRef.current?.readyState === WebSocket.OPEN;
         if (open) return;
         setStatus("reconnecting");
         retriesRef.current = 0;
@@ -309,7 +335,7 @@ export function LiveTranscription() {
             <strong>
               {connectionRef.current
                 ? ["CONNECTING", "OPEN", "CLOSING", "CLOSED"][
-                    connectionRef.current.getReadyState() ?? 3
+                    connectionRef.current.readyState ?? 3
                   ]
                 : "—"}
             </strong>
