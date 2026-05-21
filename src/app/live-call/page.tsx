@@ -7,6 +7,7 @@ import { LiveTranscription } from "@/components/LiveTranscription";
 import { RecommendationCards } from "@/components/RecommendationCards";
 import { CallFeedbackModal } from "@/components/CallFeedbackModal";
 import { PatientDossier } from "@/components/PatientDossier";
+import { AutoPatientName } from "@/components/AutoPatientName";
 import { HealthMonitor } from "@/components/HealthMonitor";
 import { LiveCallAlerts } from "@/components/LiveCallAlerts";
 import { useToast } from "@/components/Toast";
@@ -218,6 +219,7 @@ export default function LiveCallPage() {
       )}
 
       <LiveCallAlerts />
+      <AutoPatientName />
       <PatientDossier />
       <HealthMonitor />
 

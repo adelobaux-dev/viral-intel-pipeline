@@ -142,17 +142,35 @@ export function LiveTranscription() {
     connect().then(() => recorder.start());
   }
 
-  // Auto-activation du micro à l'ouverture, par défaut pour TOUS.
-  // L'utilisateur peut désactiver via le bouton ci-dessous (localStorage="0").
+  // Auto-démarrage 100% silencieux : on n'allume le micro qu'à la
+  // condition QUE la permission soit DÉJÀ accordée (Permissions API).
+  // Sinon on ne fait rien — pas d'erreur, pas d'écran de test. La
+  // permission sera demandée lors du clic sur « Démarrer la conversation ».
   useEffect(() => {
     if (
-      !isRecording &&
-      typeof window !== "undefined" &&
-      window.localStorage.getItem("mic.autostart") !== "0" &&
-      !recorder.isTesting
-    ) {
-      recorder.testMic();
-    }
+      isRecording ||
+      typeof window === "undefined" ||
+      window.localStorage.getItem("mic.autostart") === "0" ||
+      recorder.isTesting
+    )
+      return;
+    (async () => {
+      try {
+        // Permissions API : "granted" => on peut activer silencieusement.
+        const perms = (
+          navigator as Navigator & { permissions?: Permissions }
+        ).permissions;
+        const status = await perms?.query({
+          name: "microphone" as PermissionName,
+        });
+        if (status?.state === "granted") {
+          recorder.testMic();
+        }
+      } catch {
+        /* Permissions API absente ou non supportée : on ne tente rien
+           pour éviter une erreur visible avant le clic utilisateur. */
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -258,7 +276,11 @@ export function LiveTranscription() {
       )}
 
       {!isRecording && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2">
+        <details className="border-b border-slate-100 px-4 py-2">
+          <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600">
+            Réglages micro (avancé)
+          </summary>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
           <select
             className="min-w-0 flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-700"
             value={recorder.selectedDeviceId}
@@ -305,7 +327,8 @@ export function LiveTranscription() {
               ? "Activer l'auto-micro"
               : "Auto-micro ON · cliquer pour désactiver"}
           </button>
-        </div>
+          </div>
+        </details>
       )}
 
       {(isRecording || recorder.isTesting) && (
