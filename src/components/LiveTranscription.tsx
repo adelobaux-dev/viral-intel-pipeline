@@ -9,6 +9,7 @@ import {
 import { Mic, MicOff, AlertTriangle } from "lucide-react";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 import { useCallStore } from "@/lib/store";
+import { WebSpeechFallback } from "@/components/WebSpeechFallback";
 
 type Status = "idle" | "connecting" | "live" | "reconnecting" | "error";
 
@@ -249,6 +250,11 @@ export function LiveTranscription() {
 
   return (
     <div className="card flex h-full flex-col">
+      <WebSpeechFallback
+        active={
+          isRecording ? "recording" : recorder.isTesting ? "test" : "off"
+        }
+      />
       <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
         <h2 className="text-sm font-semibold text-slate-700">
           Transcription en direct

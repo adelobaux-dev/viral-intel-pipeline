@@ -47,6 +47,8 @@ export default function LiveCallPage() {
   async function handleStart() {
     setError(null);
     setBusy(true);
+    // Vide les éventuelles lignes captées pendant le test micro.
+    clearConversation();
     try {
       const res = await fetch("/api/calls/start", {
         method: "POST",
