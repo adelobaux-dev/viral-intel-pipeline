@@ -8,6 +8,8 @@ import { CallsTable } from "@/components/CallsTable";
 import { TeamLeaderboard } from "@/components/TeamLeaderboard";
 import { ClosingResourcesManager } from "@/components/ClosingResourcesManager";
 import { AppRecommendations } from "@/components/AppRecommendations";
+import { StaffSuggestionsForm } from "@/components/StaffSuggestionsForm";
+import { StaffSuggestionsPanel } from "@/components/StaffSuggestionsPanel";
 import { ErrorLogPanel } from "@/components/ErrorLogPanel";
 import { TeamReportPanel } from "@/components/TeamReportPanel";
 import { CallsTrash } from "@/components/CallsTrash";
@@ -215,6 +217,18 @@ export default async function DashboardPage() {
         {isAdmin && (
           <section>
             <AppRecommendations />
+          </section>
+        )}
+
+        {isDelobaux && (
+          <section>
+            <StaffSuggestionsPanel />
+          </section>
+        )}
+
+        {!isAdmin && (
+          <section>
+            <StaffSuggestionsForm />
           </section>
         )}
 

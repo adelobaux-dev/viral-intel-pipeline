@@ -57,9 +57,10 @@ export function LiveTranscription() {
       const { token } = (await res.json()) as { token: string };
 
       const deepgram = createClient(token);
+      const lang = useCallStore.getState().transcriptionLang;
       const connection = deepgram.listen.live({
         model: "nova-2",
-        language: "fr",
+        language: lang === "en" ? "en" : "fr",
         smart_format: true,
         interim_results: true,
         punctuate: true,

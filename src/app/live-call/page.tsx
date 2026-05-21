@@ -23,6 +23,8 @@ export default function LiveCallPage() {
     mode,
     consultationType,
     setConsultationType,
+    transcriptionLang,
+    setTranscriptionLang,
     setPatientName,
     startCall,
     stopCall,
@@ -160,6 +162,18 @@ export default function LiveCallPage() {
                 <option value="post-op">Post-op / Suivi</option>
                 <option value="qualification">Qualification</option>
                 <option value="urgence">Urgence</option>
+              </select>
+              <select
+                className="input w-32"
+                value={transcriptionLang}
+                onChange={(e) =>
+                  setTranscriptionLang(e.target.value as "fr" | "en")
+                }
+                disabled={busy}
+                title="Langue de la transcription (les conseils restent en français)"
+              >
+                <option value="fr">🇫🇷 Français</option>
+                <option value="en">🇬🇧 English</option>
               </select>
               <input
                 className="input w-52"

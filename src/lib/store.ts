@@ -12,6 +12,7 @@ interface CallState {
   isRecording: boolean;
   patientName: string;
   consultationType: ConsultationType;
+  transcriptionLang: "fr" | "en";
   callId: string | null;
   startedAt: number | null;
   mode: ConsultationMode;
@@ -20,6 +21,7 @@ interface CallState {
 
   setMode: (mode: ConsultationMode) => void;
   setConsultationType: (t: ConsultationType) => void;
+  setTranscriptionLang: (l: "fr" | "en") => void;
   setPatientName: (name: string) => void;
   startCall: (callId: string) => void;
   stopCall: () => void;
@@ -51,10 +53,12 @@ export const useCallStore = create<CallState>((set) => ({
   startedAt: null,
   mode: "closeuse",
   consultationType: "primo",
+  transcriptionLang: "fr",
   lines: [],
   recommendations: [],
 
   setConsultationType: (consultationType) => set({ consultationType }),
+  setTranscriptionLang: (transcriptionLang) => set({ transcriptionLang }),
 
   setMode: (mode) => {
     if (typeof window !== "undefined")

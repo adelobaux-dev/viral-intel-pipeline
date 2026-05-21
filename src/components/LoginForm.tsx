@@ -53,6 +53,28 @@ export function LoginForm() {
     }
   }
 
+  async function forgotPassword() {
+    setError(null);
+    setInfo(null);
+    if (!email.trim()) {
+      setError(
+        "Saisis ton email ci-dessus, puis reclique sur « Mot de passe oublié ».",
+      );
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      setError(error.message);
+    } else {
+      setInfo(
+        `Un email de réinitialisation a été envoyé à ${email}. Vérifie aussi tes spams.`,
+      );
+    }
+  }
+
   return (
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
       {mode === "signup" && (
@@ -127,6 +149,16 @@ export function LoginForm() {
           ? "Pas encore de compte ? Créer un compte"
           : "Déjà un compte ? Se connecter"}
       </button>
+
+      {mode === "signin" && (
+        <button
+          type="button"
+          onClick={forgotPassword}
+          className="w-full text-center text-xs text-slate-500 hover:text-medical-600 hover:underline"
+        >
+          Mot de passe oublié ?
+        </button>
+      )}
     </form>
   );
 }
