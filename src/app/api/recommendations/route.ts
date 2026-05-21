@@ -47,9 +47,11 @@ export async function GET(request: Request) {
       };
 
       if (recentLines.length === 0) {
-        send("idle", { message: "En attente de transcription…" });
-        controller.close();
-        return;
+        // Mode proactif : pas (encore) de transcription → on donne un
+        // conseil générique adapté au rôle/type/profil pour aider à démarrer.
+        recentLines.push(
+          "(Pas de transcription disponible — donne un conseil PROACTIF de coaching adapté au rôle et au type de consultation pour démarrer fort.)",
+        );
       }
 
       try {

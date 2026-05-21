@@ -88,7 +88,8 @@ export function RecommendationCards() {
         .lines.filter((l) => l.isFinal)
         .slice(-10)
         .map((l) => l.text);
-      if (lines.length === 0) return;
+      // Pas de transcription ? On poll quand même : la route renvoie un
+      // conseil PROACTIF basé sur le rôle/type/profil.
 
       esRef.current?.close();
       const st = useCallStore.getState();

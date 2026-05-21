@@ -45,11 +45,50 @@ export function useAudioRecorder({
   const refreshDevices = useCallback(async () => {
     try {
       const all = await navigator.mediaDevices.enumerateDevices();
-      setDevices(all.filter((d) => d.kind === "audioinput"));
+      const audios = all.filter((d) => d.kind === "audioinput");
+      setDevices(audios);
+
+      // Auto-sélection : si aucun micro choisi, prendre celui le plus utilisé
+      // par cet utilisateur (≥ 3 utilisations).
+      setSelectedDeviceId((cur) => {
+        if (cur) return cur;
+        try {
+          const usage = JSON.parse(
+            window.localStorage.getItem("mic.usage") || "{}",
+          ) as Record<string, number>;
+          const ranked = Object.entries(usage)
+            .filter(([id, c]) => c >= 3 && audios.some((d) => d.deviceId === id))
+            .sort((a, b) => b[1] - a[1]);
+          return ranked[0]?.[0] ?? "";
+        } catch {
+          return "";
+        }
+      });
     } catch {
       /* permissions non accordées : labels vides, on réessaiera */
     }
   }, []);
+
+  const recordSelection = useCallback((id: string) => {
+    if (!id || typeof window === "undefined") return;
+    try {
+      const usage = JSON.parse(
+        window.localStorage.getItem("mic.usage") || "{}",
+      ) as Record<string, number>;
+      usage[id] = (usage[id] ?? 0) + 1;
+      window.localStorage.setItem("mic.usage", JSON.stringify(usage));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const selectDevice = useCallback(
+    (id: string) => {
+      setSelectedDeviceId(id);
+      recordSelection(id);
+    },
+    [recordSelection],
+  );
 
   useEffect(() => {
     refreshDevices();
@@ -214,7 +253,7 @@ export function useAudioRecorder({
     audioLevel,
     devices,
     selectedDeviceId,
-    setSelectedDeviceId,
+    setSelectedDeviceId: selectDevice,
     refreshDevices,
     testMic,
     stopTest,

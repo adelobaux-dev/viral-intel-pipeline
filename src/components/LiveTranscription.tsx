@@ -20,6 +20,7 @@ export function LiveTranscription() {
 
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showDiag, setShowDiag] = useState(false);
 
   const connectionRef = useRef<LiveClient | null>(null);
   const keepAliveRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -260,6 +261,14 @@ export function LiveTranscription() {
           Transcription en direct
         </h2>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowDiag((v) => !v)}
+            title="Diagnostic"
+            className="rounded-md border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-50"
+          >
+            Diag
+          </button>
           {(isRecording || recorder.isTesting) && (
             <button
               type="button"
@@ -273,6 +282,46 @@ export function LiveTranscription() {
           <StatusBadge status={status} error={recorder.error} />
         </div>
       </div>
+
+      {showDiag && (
+        <div className="border-b border-slate-100 bg-slate-50 px-4 py-2 text-[11px] text-slate-600">
+          <div>
+            État Deepgram : <strong>{status}</strong>
+            {" · "}WebSocket :{" "}
+            <strong>
+              {connectionRef.current
+                ? ["CONNECTING", "OPEN", "CLOSING", "CLOSED"][
+                    connectionRef.current.getReadyState() ?? 3
+                  ]
+                : "—"}
+            </strong>
+          </div>
+          <div>
+            Lignes finales : <strong>{lines.filter((l) => l.isFinal).length}</strong>
+            {" · "}interim :{" "}
+            <strong>{lines.filter((l) => !l.isFinal).length}</strong>
+            {" · "}niveau micro : <strong>{recorder.audioLevel}</strong>
+            {" · "}mimeType : <strong>{recorder.mimeType || "—"}</strong>
+          </div>
+          <div>
+            Reconnaissance navigateur :{" "}
+            <strong>
+              {typeof window !== "undefined" &&
+              ((window as unknown as { SpeechRecognition?: unknown })
+                .SpeechRecognition ||
+                (window as unknown as { webkitSpeechRecognition?: unknown })
+                  .webkitSpeechRecognition)
+                ? "disponible (secours actif)"
+                : "indisponible"}
+            </strong>
+          </div>
+          {(errorMsg || recorder.error) && (
+            <div className="mt-1 text-red-600">
+              Dernière erreur : {errorMsg || recorder.error}
+            </div>
+          )}
+        </div>
+      )}
 
       {(errorMsg || recorder.error) && (
         <div className="flex items-start gap-2 bg-amber-50 px-4 py-2 text-sm text-amber-800">
