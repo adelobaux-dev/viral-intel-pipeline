@@ -79,3 +79,6 @@ yarn.lock
 out/
 next-env.d.ts
 .vercel
+
+# TypeScript
+*.tsbuildinfo
