@@ -15,8 +15,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -73,3 +73,12 @@ exports/
 node_modules/
 package-lock.json
 yarn.lock
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+.vercel
+
+# TypeScript
+*.tsbuildinfo
