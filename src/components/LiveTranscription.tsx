@@ -427,6 +427,19 @@ export function LiveTranscription() {
               : "Auto-micro ON · cliquer pour désactiver"}
           </button>
           </div>
+          {recorder.error && (
+            <div className="mt-2 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>{recorder.error}</span>
+            </div>
+          )}
+          {recorder.isTesting && !recorder.error && (
+            <p className="mt-2 text-xs text-emerald-700">
+              Micro actif — parlez pour voir le niveau ci-dessous.
+              {recorder.devices.length > 0 &&
+                ` (${recorder.devices.length} micro(s) détecté(s))`}
+            </p>
+          )}
         </details>
       )}
 

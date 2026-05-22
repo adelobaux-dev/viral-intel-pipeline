@@ -182,6 +182,20 @@ export function useAudioRecorder({
   /** Active le micro et n'affiche QUE le niveau (pas de transcription). */
   const testMic = useCallback(async () => {
     setError(null);
+    // Contexte non sécurisé (HTTP, IP locale, iframe sandbox) : Chrome
+    // expose `navigator.mediaDevices` uniquement en HTTPS / localhost.
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      setError(
+        "Le micro n'est accessible qu'en connexion sécurisée (https://). Ouvrez l'application via son adresse https.",
+      );
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(
+        "Ce navigateur ne permet pas l'accès au micro ici. Utilisez Chrome ou Safari à jour, en https://, sans navigation privée restreinte.",
+      );
+      return;
+    }
     try {
       const stream = await getStream();
       streamRef.current = stream;
